@@ -15,7 +15,8 @@
   "dependencies": {
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
-    "node-cron": "^4.2.1"
+    "node-cron": "^4.2.1",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",
