@@ -2,6 +2,7 @@ import { Client } from "discord.js";
 import { deployCommands } from "./deploy-commands";
 import { commands } from "./commands/index";
 import { config } from "./config";
+import { launchGithubTrendingTask } from "./tasks/github-trending";
 
 const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
@@ -25,4 +26,5 @@ client.on("interactionCreate", async (interaction) => {
     }
 });
 
+launchGithubTrendingTask(client);
 client.login(config.DISCORD_TOKEN);
