@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { Client } from "discord.js";
+import { Client, EmbedBuilder } from "discord.js";
 import { config } from "../config";
 import { getRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
 import { fetchGithubTrending } from "../utils/github-rss-api";
@@ -53,7 +53,8 @@ async function pushTrendingToChannel(client: Client, repoList: Repo[]) {
         throw new Error("Channel not found or not text based");
     }
     for (const repoTuple of splitRepoList(repoList, 3)) {
-        await channel.send(repoTuple.map((repo) => repo.summary()).join("\n"));
+        const embed = formatRepoListToEmbed(repoTuple);
+        await channel.send({ embeds: [embed] });
     }
 }
 
@@ -64,6 +65,24 @@ function splitRepoList(repoList: Repo[], size: number): Repo[][] {
         result.push(repoList.slice(i, i + size));
     }
     return result;
+}
+
+function formatRepoListToEmbed(repoList: Repo[]): EmbedBuilder {
+    const embed = new EmbedBuilder()
+        .setColor(0x0099FF)
+        .setTitle('GitHub Trending Repositories')
+        .setTimestamp()
+        .setFooter({ text: 'Trend Taste', iconURL: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png' });
+
+    repoList.forEach(repo => {
+        const title = `${repo.owner}/${repo.name}`;
+        const description = repo.description ? (repo.description.length > 200 ? repo.description.substring(0, 200) + '...' : repo.description) : 'No description';
+        const value = `[View on GitHub](${repo.link})\n⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | </> ${repo.language || 'Unknown'}\n${description}\n`;
+
+        embed.addFields({ name: title, value: value });
+    });
+
+    return embed;
 }
 
 
