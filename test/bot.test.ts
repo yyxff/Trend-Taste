@@ -1,15 +1,15 @@
 import { Client } from "discord.js";
-import { deployCommands } from "./deploy-commands";
-import { commands } from "./commands/index";
-import { config } from "./config";
-import { launchGithubTrendingTask } from "./scheduled/github-trending";
+import { deployCommands } from "../src/deploy-commands";
+import { commands } from "../src/commands/index";
+import { config } from "../src/config";
+import { runGithubTrendingTask } from "../src/tasks/github-trending";
 
 const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
 });
 
 client.once("clientReady", () => {
-    console.log("Discord bot is ready! 🤖");
+    console.log("[TEST] Discord bot is ready! 🤖");
 });
 
 client.on("guildCreate", async (guild) => {
@@ -26,5 +26,5 @@ client.on("interactionCreate", async (interaction) => {
     }
 });
 
-launchGithubTrendingTask(client);
+runGithubTrendingTask(client);
 client.login(config.DISCORD_TOKEN);

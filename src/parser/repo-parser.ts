@@ -27,7 +27,7 @@ export function parseRepoMeta(meta: any, repo: Repo): Repo {
  * @param rssRawData the raw RSS data
  * @returns the list of repositories
  */
-export function getRepoListFromRSS(rssRawData: string): Repo[] {
+export function parseRepoListFromRSS(rssRawData: string): Repo[] {
     // parse the rss raw data into rss xml data
     const parser = new XMLParser({
         ignoreAttributes: false,

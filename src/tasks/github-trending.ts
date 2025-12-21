@@ -1,44 +1,40 @@
 import cron from "node-cron";
 import { Client, EmbedBuilder } from "discord.js";
 import { config } from "../config";
-import { getRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
+import { parseRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
 import { fetchGithubTrending } from "../utils/github-rss-api";
 import { fetchRepoMeta } from "../utils/github-api";
 import { Repo } from "../models/Repo";
 
 
 /**
- * Launches a cron job that runs every minute to push the trending repositories to the channel
- * @param client 
+ * Runs the github trending task
+ * 1. Get trending repositories from github rss api
+ *    Prepare them with meta information from github api
+ * 2. Pushes the trending repositories to the channel
+ * @param client discord client
  */
-export function launchGithubTrendingTask(client: Client) {
-    cron.schedule('0 * * * * *', () => {
-        console.log('running a task every minute');
-        runGithubTrendingTask(client)
-    });
-    console.log('launched github trending task');
-}
-
-/**
- * Parse more information from github api into Repo objects
- * @returns repo list
- */
-async function prepareTrendingRepos(): Promise<Repo[]> {
-    const repoList = await getTrendingRepos();
-    await Promise.all(repoList.map(async (repo) => {
-        const meta = await fetchRepoMeta(repo.owner, repo.name);
-        parseRepoMeta(meta, repo);
-    }))
-    return repoList;
+export async function runGithubTrendingTask(client: Client) {
+    try {
+        const repoList = await prepareTrendingRepos();
+        pushTrendingToChannel(client, repoList);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 /**
  * Get trending repositories from github rss api
+ * Prepare them with meta information from github api
  * @returns repo list
  */
-async function getTrendingRepos(): Promise<Repo[]> {
+async function prepareTrendingRepos(): Promise<Repo[]> {
     const rssData = await fetchGithubTrending();
-    const repoList = getRepoListFromRSS(rssData);
+    const repoList = parseRepoListFromRSS(rssData);
+    await Promise.all(repoList.map(async (repo) => {
+        const meta = await fetchRepoMeta(repo.owner, repo.name);
+        parseRepoMeta(meta, repo);
+    }))
     return repoList;
 }
 
@@ -58,15 +54,11 @@ async function pushTrendingToChannel(client: Client, repoList: Repo[]) {
     }
 }
 
-
-function splitRepoList(repoList: Repo[], size: number): Repo[][] {
-    const result: Repo[][] = [];
-    for (let i = 0; i < repoList.length; i += size) {
-        result.push(repoList.slice(i, i + size));
-    }
-    return result;
-}
-
+/**
+ * Formats the repo list to an embed
+ * @param repoList repo list
+ * @returns embed
+*/
 function formatRepoListToEmbed(repoList: Repo[]): EmbedBuilder {
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
@@ -85,17 +77,16 @@ function formatRepoListToEmbed(repoList: Repo[]): EmbedBuilder {
     return embed;
 }
 
-
 /**
- * Runs the github trending task
- * @param client discord client
+ * Splits the repo list into chunks
+ * @param repoList repo list
+ * @param size chunk size
+ * @returns chunked repo list
  */
-async function runGithubTrendingTask(client: Client) {
-    try {
-        const repoList = await prepareTrendingRepos();
-        pushTrendingToChannel(client, repoList);
-    } catch (error) {
-        console.error(error);
+function splitRepoList(repoList: Repo[], size: number): Repo[][] {
+    const result: Repo[][] = [];
+    for (let i = 0; i < repoList.length; i += size) {
+        result.push(repoList.slice(i, i + size));
     }
+    return result;
 }
-
