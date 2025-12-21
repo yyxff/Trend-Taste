@@ -10,6 +10,7 @@ const client = new Client({
 
 client.once("clientReady", () => {
     console.log("[TEST] Discord bot is ready! 🤖");
+    runGithubTrendingTask(client);
 });
 
 client.on("guildCreate", async (guild) => {
@@ -26,5 +27,4 @@ client.on("interactionCreate", async (interaction) => {
     }
 });
 
-runGithubTrendingTask(client);
 client.login(config.DISCORD_TOKEN);

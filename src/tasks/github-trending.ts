@@ -69,7 +69,7 @@ function formatRepoListToEmbed(repoList: Repo[]): EmbedBuilder {
     repoList.forEach(repo => {
         const title = `${repo.owner}/${repo.name}`;
         const description = repo.description ? (repo.description.length > 200 ? repo.description.substring(0, 200) + '...' : repo.description) : 'No description';
-        const value = `[View on GitHub](${repo.link})\n⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | </> ${repo.language || 'Unknown'}\n${description}\n`;
+        const value = `[View on GitHub](${repo.link})\n⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | 👀 ${repo.watchings || 0} | </> ${repo.language || 'Unknown'}\n${description}\n`;
 
         embed.addFields({ name: title, value: value });
     });
