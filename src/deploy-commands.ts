@@ -1,10 +1,10 @@
 import { REST, Routes } from "discord.js";
-import { config } from "./config";
+import { discordConfig } from "./config";
 import { commands } from "./commands/index";
 
 const commandsData = Object.values(commands).map((command: any) => command.data);
 
-const rest = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);
+const rest = new REST({ version: "10" }).setToken(discordConfig.DISCORD_TOKEN);
 
 type DeployCommandsProps = {
     guildId: string;
@@ -15,7 +15,7 @@ export async function deployCommands({ guildId }: DeployCommandsProps) {
         console.log("Started refreshing application (/) commands.");
 
         await rest.put(
-            Routes.applicationGuildCommands(config.DISCORD_APPLICATION_ID, guildId),
+            Routes.applicationGuildCommands(discordConfig.DISCORD_APPLICATION_ID, guildId),
             {
                 body: commandsData,
             }

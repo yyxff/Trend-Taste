@@ -1,7 +1,7 @@
 import { Client } from "discord.js";
 import { deployCommands } from "../src/deploy-commands";
 import { commands } from "../src/commands/index";
-import { config } from "../src/config";
+import { discordConfig } from "../src/config";
 import { runGithubTrendingTask } from "../src/tasks/github-trending";
 
 const client = new Client({
@@ -27,4 +27,4 @@ client.on("interactionCreate", async (interaction) => {
     }
 });
 
-client.login(config.DISCORD_TOKEN);
+client.login(discordConfig.DISCORD_TOKEN);

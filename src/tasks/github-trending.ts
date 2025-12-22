@@ -1,11 +1,12 @@
 import cron from "node-cron";
 import { Client, EmbedBuilder } from "discord.js";
-import { config } from "../config";
+import { discordConfig } from "../config";
 import { parseRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
 import { fetchGithubTrending } from "../utils/github-rss-api";
 import { fetchRepoMeta } from "../utils/github-api";
 import { Repo } from "../models/Repo";
-
+import type { FineRepo } from "../models/FineRepo";
+import { generate } from "../ai-api/gemini";
 
 /**
  * Runs the github trending task
@@ -17,10 +18,27 @@ import { Repo } from "../models/Repo";
 export async function runGithubTrendingTask(client: Client) {
     try {
         const repoList = await prepareTrendingRepos();
-        pushTrendingToChannel(client, repoList);
+        // const testList = repoList.slice(0, 1);
+        // console.log(testList);
+        const fineRepoList = await prepareFineRepoList(repoList);
+        pushTrendingToChannel(client, fineRepoList);
     } catch (error) {
         console.error(error);
     }
+}
+
+/**
+ * Add recommendations based on AI to the repo list
+ * @param repoList repo list with basic information
+ * @returns repo list with recommendations
+ */
+async function prepareFineRepoList(repoList: Repo[]): Promise<FineRepo[]> {
+    const fineRepoList = repoList.map(async (repo) => {
+        const prompt = `Please give me a brief recommendation (within 100 words) for this repository: ${repo.summary()}, ${repo.readme?.substring(0, 1500)}`;
+        const recommendation = await generate(prompt);
+        return Object.assign(repo, { Recommendation: recommendation });
+    });
+    return Promise.all(fineRepoList);
 }
 
 /**
@@ -43,8 +61,8 @@ async function prepareTrendingRepos(): Promise<Repo[]> {
  * @param client discord client
  * @param repoList repo list
  */
-async function pushTrendingToChannel(client: Client, repoList: Repo[]) {
-    const channel = await client.channels.fetch(config.DISCORD_CHANNEL_ID);
+async function pushTrendingToChannel(client: Client, repoList: FineRepo[]) {
+    const channel = await client.channels.fetch(discordConfig.DISCORD_CHANNEL_ID);
     if (!channel || !channel.isTextBased() || !('send' in channel)) {
         throw new Error("Channel not found or not text based");
     }
@@ -59,7 +77,7 @@ async function pushTrendingToChannel(client: Client, repoList: Repo[]) {
  * @param repoList repo list
  * @returns embed
 */
-function formatRepoListToEmbed(repoList: Repo[]): EmbedBuilder {
+function formatRepoListToEmbed(repoList: FineRepo[]): EmbedBuilder {
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setTitle('GitHub Trending Repositories')
@@ -69,7 +87,10 @@ function formatRepoListToEmbed(repoList: Repo[]): EmbedBuilder {
     repoList.forEach(repo => {
         const title = `${repo.owner}/${repo.name}`;
         const description = repo.description ? (repo.description.length > 200 ? repo.description.substring(0, 200) + '...' : repo.description) : 'No description';
-        const value = `[View on GitHub](${repo.link})\n⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | 👀 ${repo.watchings || 0} | </> ${repo.language || 'Unknown'}\n${description}\n`;
+        const value = `[View on GitHub](${repo.link})
+        ⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | 👀 ${repo.watchings || 0} | </> ${repo.language || 'Unknown'}
+        description: ${description}
+        recommendation: ${repo.Recommendation.substring(0, 1000)}`;
 
         embed.addFields({ name: title, value: value });
     });
@@ -83,8 +104,8 @@ function formatRepoListToEmbed(repoList: Repo[]): EmbedBuilder {
  * @param size chunk size
  * @returns chunked repo list
  */
-function splitRepoList(repoList: Repo[], size: number): Repo[][] {
-    const result: Repo[][] = [];
+function splitRepoList(repoList: FineRepo[], size: number): FineRepo[][] {
+    const result: FineRepo[][] = [];
     for (let i = 0; i < repoList.length; i += size) {
         result.push(repoList.slice(i, i + size));
     }
