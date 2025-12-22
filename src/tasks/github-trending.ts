@@ -64,7 +64,7 @@ async function prepareTrendingRepos(): Promise<Repo[]> {
  * @param client discord client
  * @param repoList repo list
  */
-async function pushTrendingToChannel(client: Client, repoList: FineRepo[]) {
+export async function pushTrendingToChannel(client: Client, repoList: FineRepo[]) {
     const channel = await client.channels.fetch(discordConfig.DISCORD_CHANNEL_ID);
     if (!channel || !channel.isTextBased() || !('send' in channel)) {
         throw new Error("Channel not found or not text based");
