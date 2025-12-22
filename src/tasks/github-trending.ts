@@ -89,13 +89,15 @@ function formatRepoListToEmbed(repoList: FineRepo[]): EmbedBuilder {
 
     repoList.forEach(repo => {
         const title = `${repo.owner}/${repo.name}`;
-        const description = repo.description ? (repo.description.length > 200 ? repo.description.substring(0, 200) + '...' : repo.description) : 'No description';
-        const value = `[View on GitHub](${repo.link})
-        ⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | 👀 ${repo.watchings || 0} | </> ${repo.language || 'Unknown'}
-        description: ${description}
-        recommendation: ${repo.Recommendation.substring(0, 1000)}`;
+        const link = `[View on GitHub](${repo.link})`;
 
-        embed.addFields({ name: title, value: value });
+        const value = `⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | 👀 ${repo.watchings || 0} | </> ${repo.language || 'Unknown'}`;
+        const description = repo.description ? (repo.description.length > 200 ? repo.description.substring(0, 200) + '...' : repo.description) : 'No description';
+        const recommendation = repo.Recommendation.substring(0, 1000);
+
+        embed.addFields({ name: title, value: link });
+        embed.addFields({ name: 'Description', value: description });
+        embed.addFields({ name: 'Recommendation', value: recommendation });
         // this image service is a 3rd-party one(https://github.com/miantiao-me/github-og-image)
         // thus it can be unstable
         embed.setImage(`https://github.html.zone/${repo.owner}/${repo.name}`)
