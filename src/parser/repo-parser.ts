@@ -1,4 +1,4 @@
-import { Repo } from "../models/Repo";
+import type { Repo } from "../models/Repo";
 import { XMLParser } from "fast-xml-parser";
 
 /**
@@ -48,9 +48,12 @@ export function parseRepoListFromRSS(rssRawData: string): Repo[] {
             return null;
         }
 
-        const repo = new Repo(repoName[0], repoName[1]);
-        repo.link = link;
-        repo.readme = readme;
+        const repo: Repo = {
+            owner: repoName[0],
+            name: repoName[1],
+            link: link,
+            readme: readme
+        };
         return repo;
     }).filter((repo: Repo | null) => repo !== null);
     return repoList;

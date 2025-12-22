@@ -4,22 +4,22 @@ import { discordConfig } from "../config";
 import { parseRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
 import { fetchGithubTrending } from "../utils/github-rss-api";
 import { fetchRepoMeta } from "../utils/github-api";
-import { Repo } from "../models/Repo";
+import type { Repo } from "../models/Repo";
 import type { FineRepo } from "../models/FineRepo";
 import { generate } from "../ai-api/gemini";
+import { summary } from "../models/Repo";
 
 /**
  * Runs the github trending task
  * 1. Get trending repositories from github rss api
  *    Prepare them with meta information from github api
- * 2. Pushes the trending repositories to the channel
+ * 2. Add recommendations based on AI to the repo list
+ * 3. Pushes the trending repositories to the channel
  * @param client discord client
  */
 export async function runGithubTrendingTask(client: Client) {
     try {
         const repoList = await prepareTrendingRepos();
-        // const testList = repoList.slice(0, 1);
-        // console.log(testList);
         const fineRepoList = await prepareFineRepoList(repoList);
         pushTrendingToChannel(client, fineRepoList);
     } catch (error) {
@@ -34,9 +34,12 @@ export async function runGithubTrendingTask(client: Client) {
  */
 async function prepareFineRepoList(repoList: Repo[]): Promise<FineRepo[]> {
     const fineRepoList = repoList.map(async (repo) => {
-        const prompt = `Please give me a brief recommendation (within 100 words) for this repository: ${repo.summary()}, ${repo.readme?.substring(0, 1500)}`;
+        const prompt = `Please give me a brief recommendation (within 100 words) for this repository: ${summary(repo)}, ${repo.readme?.substring(0, 1500)}`;
         const recommendation = await generate(prompt);
-        return Object.assign(repo, { Recommendation: recommendation });
+        return {
+            ...repo,
+            Recommendation: recommendation
+        };
     });
     return Promise.all(fineRepoList);
 }

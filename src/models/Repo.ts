@@ -1,22 +1,19 @@
-export class Repo {
-    constructor(
-        public owner: string,
-        public name: string,
-        public stars?: number,
-        public forks?: number,
-        public watchings?: number,
-        public language?: string,
-        public description?: string,
-        public readme?: string,
-        public link?: string,
-        public topics?: string[],
-    ) { }
-
-    summary(): string {
-        return `${this.owner}/${this.name}, ${this.stars} stars, ${this.forks} forks, in ${this.language}. 
-        link: ${this.link},
-        description: ${this.description}
-        `;
-    }
+export type Repo = {
+    owner: string,
+    name: string,
+    stars?: number,
+    forks?: number,
+    watchings?: number,
+    language?: string,
+    description?: string,
+    readme?: string,
+    link?: string,
+    topics?: string[],
 }
 
+export function summary(repo: Repo): string {
+    return `${repo.owner}/${repo.name}, ${repo.stars} stars, ${repo.forks} forks, in ${repo.language}. 
+        link: ${repo.link},
+        description: ${repo.description}
+        `;
+}
