@@ -12,8 +12,8 @@ client.once("clientReady", () => {
     console.log("[TEST] Discord bot is ready! 🤖");
     const fineRepoList = [
         {
-            owner: "owner",
-            name: "name",
+            owner: "facebook",
+            name: "react",
             stars: 1,
             forks: 1,
             watchings: 1,

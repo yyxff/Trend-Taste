@@ -96,6 +96,9 @@ function formatRepoListToEmbed(repoList: FineRepo[]): EmbedBuilder {
         recommendation: ${repo.Recommendation.substring(0, 1000)}`;
 
         embed.addFields({ name: title, value: value });
+        // this image service is a 3rd-party one(https://github.com/miantiao-me/github-og-image)
+        // thus it can be unstable
+        embed.setImage(`https://github.html.zone/${repo.owner}/${repo.name}`)
     });
 
     return embed;
