@@ -1,7 +1,7 @@
 import { Client } from "discord.js";
 import { deployCommands } from "./deploy-commands";
 import { commands } from "./commands/index";
-import { config } from "./config";
+import { discordConfig } from "./config";
 import { launchGithubTrendingTask } from "./scheduled/github-trending";
 
 const client = new Client({
@@ -10,7 +10,9 @@ const client = new Client({
 
 client.once("clientReady", () => {
     console.log("Discord bot is ready! 🤖");
-    launchGithubTrendingTask(client);
+    client.guilds.cache.forEach(async (guild) => {
+        await deployCommands({ guildId: guild.id });
+    });
 });
 
 client.on("guildCreate", async (guild) => {
@@ -27,4 +29,4 @@ client.on("interactionCreate", async (interaction) => {
     }
 });
 
-client.login(config.DISCORD_TOKEN);
+client.login(discordConfig.DISCORD_TOKEN);
