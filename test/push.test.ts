@@ -20,7 +20,7 @@ client.once("clientReady", () => {
             language: "language",
             description: "description",
             readme: "readme",
-            link: "link",
+            link: "https://github.com/anthropics/skills",
             topics: ["topic"],
             Recommendation: "recommendation"
         }

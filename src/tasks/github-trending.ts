@@ -69,8 +69,8 @@ export async function pushTrendingToChannel(client: Client, repoList: FineRepo[]
     if (!channel || !channel.isTextBased() || !('send' in channel)) {
         throw new Error("Channel not found or not text based");
     }
-    for (const repoTuple of splitRepoList(repoList, 3)) {
-        const embed = formatRepoListToEmbed(repoTuple);
+    for (const repo of repoList) {
+        const embed = formatRepoToEmbed(repo);
         await channel.send({ embeds: [embed] });
     }
 }
@@ -80,42 +80,25 @@ export async function pushTrendingToChannel(client: Client, repoList: FineRepo[]
  * @param repoList repo list
  * @returns embed
 */
-function formatRepoListToEmbed(repoList: FineRepo[]): EmbedBuilder {
+function formatRepoToEmbed(repo: FineRepo): EmbedBuilder {
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
-        .setTitle('GitHub Trending Repositories')
+        .setTitle(`${repo.owner}/${repo.name}`)
+        .setURL(repo.link)
         .setTimestamp()
         .setFooter({ text: 'Trend Taste', iconURL: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png' });
 
-    repoList.forEach(repo => {
-        const title = `${repo.owner}/${repo.name}`;
-        const link = `[View on GitHub](${repo.link})`;
 
-        const value = `⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | 👀 ${repo.watchings || 0} | </> ${repo.language || 'Unknown'}`;
-        const description = repo.description ? (repo.description.length > 200 ? repo.description.substring(0, 200) + '...' : repo.description) : 'No description';
-        const recommendation = repo.Recommendation.substring(0, 1000);
+    const meta = `⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | 👀 ${repo.watchings || 0} | </> ${repo.language || 'Unknown'}`;
+    const description = repo.description ? (repo.description.length > 200 ? repo.description.substring(0, 200) + '...' : repo.description) : 'No description';
+    const recommendation = repo.Recommendation.substring(0, 1000);
 
-        embed.addFields({ name: title, value: link });
-        embed.addFields({ name: 'Description', value: description });
-        embed.addFields({ name: 'Recommendation', value: recommendation });
-        // this image service is a 3rd-party one(https://github.com/miantiao-me/github-og-image)
-        // thus it can be unstable
-        embed.setImage(`https://github.html.zone/${repo.owner}/${repo.name}`)
-    });
+    embed.addFields({ name: 'Stat', value: meta });
+    embed.addFields({ name: 'Description', value: description });
+    embed.addFields({ name: 'Recommendation', value: recommendation });
+    // this image service is a 3rd-party one(https://github.com/miantiao-me/github-og-image)
+    // thus it can be unstable
+    embed.setImage(`https://github.html.zone/${repo.owner}/${repo.name}`)
 
     return embed;
-}
-
-/**
- * Splits the repo list into chunks
- * @param repoList repo list
- * @param size chunk size
- * @returns chunked repo list
- */
-function splitRepoList(repoList: FineRepo[], size: number): FineRepo[][] {
-    const result: FineRepo[][] = [];
-    for (let i = 0; i < repoList.length; i += size) {
-        result.push(repoList.slice(i, i + size));
-    }
-    return result;
 }

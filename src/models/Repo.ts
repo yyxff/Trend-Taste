@@ -7,7 +7,7 @@ export type Repo = {
     language?: string,
     description?: string,
     readme?: string,
-    link?: string,
+    link: string,
     topics?: string[],
 }
 
