@@ -8,23 +8,44 @@ import type { Repo } from "../models/Repo";
 import type { FineRepo } from "../models/FineRepo";
 import { generate } from "../ai-api/gemini";
 import { summary } from "../models/Repo";
+import { format } from "node:path";
 
 /**
  * Runs the github trending task
  * 1. Get trending repositories from github rss api
  *    Prepare them with meta information from github api
  * 2. Add recommendations based on AI to the repo list
- * 3. Pushes the trending repositories to the channel
+ * 3. Prepare a brief summary for the whole repo list
+ * 4. Build their embed format
+ * 5. Pushes the embed message to the channel
  * @param client discord client
  */
 export async function runGithubTrendingTask(client: Client) {
     try {
         const repoList = await prepareTrendingRepos();
         const fineRepoList = await prepareFineRepoList(repoList);
-        pushTrendingToChannel(client, fineRepoList);
+        const summary = await prepareSummary(fineRepoList);
+
+        const embedSummary = formatSummaryToEmbed(summary);
+        const embedRepo = fineRepoList.map(formatRepoToEmbed);
+
+        await pushSummaryToChannel(client, embedSummary);
+        await pushTrendingToChannel(client, embedRepo);
     } catch (error) {
         console.error(error);
     }
+}
+
+/**
+ * Prepare a brief summary for the whole repo list
+ * @param repoList 
+ * @returns summary string
+ */
+async function prepareSummary(repoList: FineRepo[]): Promise<string> {
+    const repoRecommendations = repoList.map(repo => repo.recommendation).join('\n');
+    const prompt = `Please give me a brief summary (within 100 words for the whole summary! You only need to include the most valuable information) for today's repositories: ${repoRecommendations}`;
+    const summary = await generate(prompt);
+    return summary;
 }
 
 /**
@@ -34,11 +55,11 @@ export async function runGithubTrendingTask(client: Client) {
  */
 async function prepareFineRepoList(repoList: Repo[]): Promise<FineRepo[]> {
     const fineRepoList = repoList.map(async (repo) => {
-        const prompt = `Please give me a brief recommendation (within 100 words) for this repository: ${summary(repo)}, ${repo.readme?.substring(0, 1500)}`;
+        const prompt = `Please give me a brief recommendation (within 50 words) for this repository: ${summary(repo)}, ${repo.readme?.substring(0, 1500)}`;
         const recommendation = await generate(prompt);
         return {
             ...repo,
-            Recommendation: recommendation
+            recommendation: recommendation
         };
     });
     return Promise.all(fineRepoList);
@@ -64,15 +85,47 @@ async function prepareTrendingRepos(): Promise<Repo[]> {
  * @param client discord client
  * @param repoList repo list
  */
-export async function pushTrendingToChannel(client: Client, repoList: FineRepo[]) {
+export async function pushTrendingToChannel(client: Client, repoList: EmbedBuilder[]) {
     const channel = await client.channels.fetch(discordConfig.DISCORD_CHANNEL_ID);
     if (!channel || !channel.isTextBased() || !('send' in channel)) {
         throw new Error("Channel not found or not text based");
     }
     for (const repo of repoList) {
-        const embed = formatRepoToEmbed(repo);
-        await channel.send({ embeds: [embed] });
+        await channel.send({ embeds: [repo] });
     }
+}
+
+/**
+ * Pushes the summary to the channel
+ * @param client discord client
+ * @param summary summary string
+ */
+async function pushSummaryToChannel(client: Client, summary: EmbedBuilder) {
+    const channel = await client.channels.fetch(discordConfig.DISCORD_CHANNEL_ID);
+    if (!channel || !channel.isTextBased() || !('send' in channel)) {
+        throw new Error("Channel not found or not text based");
+    }
+    await channel.send({ embeds: [summary] });
+}
+
+/**
+ * Formats the summary to an embed
+ * @param summary summary string 
+ * @returns embed
+ */
+function formatSummaryToEmbed(summary: string): EmbedBuilder {
+    const embed = new EmbedBuilder()
+        .setAuthor({ 
+            name: 'Trend-Taste bot', 
+            iconURL: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+            url: 'https://github.com/yyxff/Trend-Taste'
+        })
+        .setColor(0x00FF00)
+        .setTitle('Trending Repositories Summary')
+        .setDescription(summary)
+        .setTimestamp()
+        .setFooter({ text: 'Trend Taste', iconURL: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png' });
+    return embed;
 }
 
 /**
@@ -91,7 +144,7 @@ function formatRepoToEmbed(repo: FineRepo): EmbedBuilder {
 
     const meta = `⭐ ${repo.stars || 0} | 𐂐 ${repo.forks || 0} | 👀 ${repo.watchings || 0} | </> ${repo.language || 'Unknown'}`;
     const description = repo.description ? (repo.description.length > 200 ? repo.description.substring(0, 200) + '...' : repo.description) : 'No description';
-    const recommendation = repo.Recommendation.substring(0, 1000);
+    const recommendation = repo.recommendation.substring(0, 1000);
 
     embed.addFields({ name: 'Stat', value: meta });
     embed.addFields({ name: 'Description', value: description });
