@@ -9,10 +9,11 @@ const client = new Client({
 });
 
 client.once("clientReady", () => {
-    console.log("Discord bot is ready! 🤖");
     client.guilds.cache.forEach(async (guild) => {
         await deployCommands({ guildId: guild.id });
     });
+    launchGithubTrendingTask(client);
+    console.log("Discord bot is ready! 🤖");
 });
 
 client.on("guildCreate", async (guild) => {
