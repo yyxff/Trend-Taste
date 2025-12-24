@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id // Discord User ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Language {
+  EN
+  ZH
+}
+
+
+model Preferences {
+  id        String   @id // Discord User ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  language  Language?
+  taskTime  DateTime?
+}
+
+model Repo {
+  id        String   @id // GitHub Repo ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner     String
+  name      String
+  url       String
+  description String?
+  stars     Int?
+  forks     Int?
+  watchings Int?
+  language  String?
+  topics    String[]
+}
