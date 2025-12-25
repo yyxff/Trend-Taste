@@ -6,8 +6,8 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        String   @id // Discord User ID
+model Channel {
+  id        String   @id // Discord Channel ID
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -18,8 +18,8 @@ enum Language {
 }
 
 
-model Preferences {
-  id        String   @id // Discord User ID
+model Preference {
+  id        String   @id // Discord Channel ID
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
