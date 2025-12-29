@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import type { Task, TaskType } from "@prisma/client";
+import type { Task, TaskType, LanguageType } from "@prisma/client";
 
 export async function getTaskByChannelId(channelId: string): Promise<Task | null> {
     return prisma.task.findUnique({
@@ -19,6 +19,10 @@ export async function upsertTaskSchedule(channelId: string, schedule: Date): Pro
 
 export async function upsertTaskType(channelId: string, taskType: TaskType): Promise<Task> {
     return _upsertTask(channelId, { taskType });
+}
+
+export async function upsertTaskLanguage(channelId: string, language: LanguageType): Promise<Task> {
+    return _upsertTask(channelId, { language });
 }
 
 async function _upsertTask(channelId: string, data: Partial<Omit<Task, "id" | "createdAt" | "updatedAt" | "channelId">>): Promise<Task> {

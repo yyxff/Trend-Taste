@@ -13,7 +13,7 @@ export const data = new SlashCommandBuilder()
             .setDescription("The task type to set (e.g., 'GITHUB_TRENDING')")
             .setRequired(true)
             .addChoices(
-                { name: "github trending", value: "GITHUB_TRENDING" }
+                { name: "github trending", value: TaskType.GITHUB_TRENDING }
             )
     );
 
@@ -21,9 +21,6 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
     console.log(`ChannelID: ${interaction.channelId} `);
     const taskType = interaction.options.getString("task-type", true);
-    if (!(taskType in TaskType)) {
-        return interaction.reply({ content: `Unsupported task type: ${taskType}`, flags: MessageFlags.Ephemeral });
-    }
     try {
         await setTaskType(interaction.channelId, taskType as TaskType);
         return interaction.reply({ content: `Task type set to ${taskType}`, flags: MessageFlags.Ephemeral });

@@ -1,10 +1,10 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
-import { Language } from "../constants/language";
-import { updatePreferenceLanguage } from "../repositories/preference.repo";
+import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from "discord.js";
+import { LanguageType } from "@prisma/client";
+import { setTaskLanguage } from "../../services/task.service";
 
 // Set your preferred language
 export const data = new SlashCommandBuilder()
-    .setName("language")
+    .setName("set-language")
     .setDescription("Sets the preferred language for the bot")
     .addStringOption(option =>
         option
@@ -12,17 +12,14 @@ export const data = new SlashCommandBuilder()
             .setDescription("The language to set (e.g., 'EN', 'ZH')")
             .setRequired(true)
             .addChoices(
-                { name: "English", value: "EN" },
-                { name: "Chinese", value: "ZH" }
+                { name: "English", value: LanguageType.EN },
+                { name: "Chinese", value: LanguageType.ZH }
             )
     );
 
 // Get the preferred language and write it to the database
 export async function execute(interaction: ChatInputCommandInteraction) {
     const language = interaction.options.getString("language", true);
-    if (!(language in Language)) {
-        return interaction.reply({ content: `Unsupported language: ${language}`, ephemeral: true });
-    }
-    await updatePreferenceLanguage(interaction.channelId, language as Language);
+    await setTaskLanguage(interaction.channelId, language as LanguageType);
     await interaction.reply(`Language has been set to ${language}`);
 }
