@@ -22,12 +22,16 @@ client.on("guildCreate", async (guild) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
+    console.log("Interaction received:", interaction.id);
     if (!interaction.isCommand() || !interaction.isChatInputCommand()) {
+        console.error("Unsupported interaction type.");
         return;
     }
     const { commandName } = interaction;
     if (commands[commandName as keyof typeof commands]) {
         commands[commandName as keyof typeof commands].execute(interaction);
+    } else {
+        console.error(`No command found for: ${commandName}`);
     }
 });
 
