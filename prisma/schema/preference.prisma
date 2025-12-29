@@ -1,0 +1,15 @@
+enum Language {
+  EN
+  ZH
+}
+
+model Preference {
+  taskId    Int      @id @unique// Task ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  language  Language?
+  taskTime  DateTime?
+
+  task      Task     @relation(fields: [taskId], references: [id])
+}

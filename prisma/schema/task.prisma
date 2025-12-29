@@ -1,0 +1,15 @@
+enum TaskType {
+  GITHUB_TRENDING
+}
+
+model Task {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  channelId String   @unique
+  taskType  TaskType?
+  schedule  DateTime?
+  preference Preference?
+  enabled    Boolean  @default(false)
+}
