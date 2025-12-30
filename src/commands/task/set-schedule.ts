@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { IANAZone, DateTime } from "luxon";
 import { COMMON_TIMEZONES } from "../../constants/timezones";
 import { setTaskSchedule, setTaskTimezone } from "../../services/task.service";
+import { logger } from "../../utils/logger";
 
 export const data = new SlashCommandBuilder()
     .setName("set-schedule")
@@ -31,20 +32,29 @@ export const data = new SlashCommandBuilder()
     );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-    const hour = interaction.options.getInteger("hour", true);
-    const minute = interaction.options.getInteger("minute", true);
-    const timezone = interaction.options.getString("timezone", true);
-    if (!IANAZone.isValidZone(timezone)) {
-        return interaction.reply(`Invalid timezone: ${timezone}`);
-    }
-    const now = DateTime.now().setZone(timezone);
-    const taskTime = now.set({ hour: hour, minute: minute, second: 0, millisecond: 0 });
+    const cmdlogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
+    cmdlogger.info("Command invoked");
     try {
+        const hour = interaction.options.getInteger("hour", true);
+        const minute = interaction.options.getInteger("minute", true);
+        const timezone = interaction.options.getString("timezone", true);
+        if (!IANAZone.isValidZone(timezone)) {
+            cmdlogger.warn({ timezone }, "Invalid timezone provided");
+            return interaction.reply(`Invalid timezone: ${timezone}`);
+        }
+        const now = DateTime.now().setZone(timezone);
+        const taskTime = now.set({ hour: hour, minute: minute, second: 0, millisecond: 0 });
         await setTaskTimezone(interaction.channelId, timezone);
         await setTaskSchedule(interaction.channelId, taskTime.toUTC().toJSDate());
-        return interaction.reply(`Your task is scheduled to ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} for ${timezone} UTC${now.toFormat("ZZ")}, (Next run: ${taskTime.toISO()})`);
+
+        const response = `Your task is scheduled to `
+        +`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} `
+        +`for ${timezone} UTC${now.toFormat("ZZ")}, `
+        +`(Next run: ${taskTime.toISO()})`;
+        cmdlogger.info({ hour, minute, timezone }, "Command executed successfully");
+        return interaction.reply(response);
     } catch (error) {
-        console.error(`ChannelID: ${interaction.channelId} - Error setting schedule:`, error);
+        cmdlogger.error({error}, "Command execution failed");
         return interaction.reply(`Failed to set schedule. Please try again or check the logs.`);
     }
 }

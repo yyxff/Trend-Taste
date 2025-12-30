@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { LanguageType } from "@prisma/client";
 import { setTaskLanguage } from "../../services/task.service";
+import { logger } from "../../utils/logger";
 
 // Set your preferred language
 export const data = new SlashCommandBuilder()
@@ -19,7 +20,16 @@ export const data = new SlashCommandBuilder()
 
 // Get the preferred language and write it to the database
 export async function execute(interaction: ChatInputCommandInteraction) {
-    const language = interaction.options.getString("language", true);
-    await setTaskLanguage(interaction.channelId, language as LanguageType);
-    await interaction.reply(`Language has been set to ${language}`);
+    const cmdlogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
+    cmdlogger.info("Command invoked");
+    try {
+        const language = interaction.options.getString("language", true);
+        const channelId = interaction.channelId;
+        await setTaskLanguage(channelId, language as LanguageType);
+        cmdlogger.info("Command executed successfully");
+        await interaction.reply(`Language has been set to ${language}`);
+    } catch (error) {
+        cmdlogger.error({error}, "Command execution failed");
+        await interaction.reply({ content: `Failed to set language. Please try again later.`, flags: MessageFlags.Ephemeral });
+    }
 }

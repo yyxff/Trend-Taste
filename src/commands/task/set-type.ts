@@ -2,6 +2,7 @@ import { MessageFlags } from "discord.js";
 import { TaskType } from "@prisma/client";
 import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
 import { setTaskType } from "../../services/task.service";
+import { logger } from "../../utils/logger";
 
 // Set your task type
 export const data = new SlashCommandBuilder()
@@ -19,13 +20,16 @@ export const data = new SlashCommandBuilder()
 
 // Get the task type from user and write it to the database
 export async function execute(interaction: ChatInputCommandInteraction) {
-    console.log(`ChannelID: ${interaction.channelId} `);
-    const taskType = interaction.options.getString("task-type", true);
+    const cmdlogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
+    cmdlogger.info("Command invoked");
     try {
+        const taskType = interaction.options.getString("task-type", true);
         await setTaskType(interaction.channelId, taskType as TaskType);
+        cmdlogger.info("Task type set successfully");
         return interaction.reply({ content: `Task type set to ${taskType}`, flags: MessageFlags.Ephemeral });
     } catch (error) {
-        console.error(`ChannelID: ${interaction.channelId} - Error setting task type:`, error);
+        cmdlogger.error({error}, "Error setting task type");
+        const taskType = interaction.options.getString("task-type", true);
         return interaction.reply({ content: `Failed to set task type ${taskType}. Please try again or check the logs.`, flags: MessageFlags.Ephemeral });
     }
 }

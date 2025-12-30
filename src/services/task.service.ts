@@ -21,6 +21,22 @@ export async function getTaskById(taskId: number): Promise<Task | null> {
 }
 
 /**
+ * Get a task by its channel ID
+ * @param channelId The channel ID of the task to retrieve
+ * @returns The task if found, otherwise null
+ */
+export async function getTaskByChannelId(channelId: string): Promise<Task | null> {
+    try {
+        const task = await prisma.task.findUnique({
+            where: { channelId: channelId }
+        });
+        return task;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
  * 
  * @returns 
  */
