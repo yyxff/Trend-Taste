@@ -25,6 +25,10 @@ export async function upsertTaskLanguage(channelId: string, language: LanguageTy
     return _upsertTask(channelId, { language });
 }
 
+export async function upsertTaskTimezone(channelId: string, timezone: string): Promise<Task> {
+    return _upsertTask(channelId, { timezone });
+}
+
 async function _upsertTask(channelId: string, data: Partial<Omit<Task, "id" | "createdAt" | "updatedAt" | "channelId">>): Promise<Task> {
   return prisma.task.upsert({
     where: { channelId },

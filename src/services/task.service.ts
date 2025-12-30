@@ -1,5 +1,5 @@
 import type { Task, TaskType, LanguageType } from "@prisma/client";
-import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType } from "../repositories/task.repo";
+import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone } from "../repositories/task.repo";
 
 /**
  * set the schedule for a task
@@ -55,6 +55,21 @@ export async function setTaskEnabledStatus(channelId: string, enabled: boolean):
 export async function setTaskLanguage(channelId: string, language: LanguageType): Promise<Task> {
     try {
         const task = await upsertTaskLanguage(channelId, language);
+        return task;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Set the timezone for a task
+ * @param channelId 
+ * @param timezone 
+ * @returns The updated or created Task
+ */
+export async function setTaskTimezone(channelId: string, timezone: string): Promise<Task> {
+    try {
+        const task = await upsertTaskTimezone(channelId, timezone);
         return task;
     } catch (error) {
         throw error;

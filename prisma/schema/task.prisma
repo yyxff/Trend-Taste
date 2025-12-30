@@ -15,6 +15,7 @@ model Task {
   channelId String   @unique
   taskType  TaskType?
   schedule  DateTime?
+  timezone  String?
   language  LanguageType @default(EN)
   enabled    Boolean  @default(false)
 }
