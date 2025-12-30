@@ -9,20 +9,9 @@ import type { LanguageType } from "@prisma/client";
 import { languagePromptMap } from "../constants/language";
 import { logger } from "../utils/logger";
 import { prepareRepo } from "../services/repo.service";
+import { LockSet } from "../utils/lock";
+import { prepareRecommendationForRepo } from "../services/recommendation.service";
 
-const fetchingLock = new Set<string>();
-
-export function acquireLock(fullName: string): boolean {
-    if (fetchingLock.has(fullName)) {
-        return false;
-    }
-    fetchingLock.add(fullName);
-    return true;
-}
-
-export function releaseLock(fullName: string): void {
-    fetchingLock.delete(fullName);
-}
 
 /**
  * Runs the github trending task
@@ -70,12 +59,11 @@ async function prepareSummary(repoList: FineRepoDto[], language: LanguageType): 
  */
 async function prepareFineRepoList(repoList: RepoDto[], language: LanguageType): Promise<FineRepoDto[]> {
     const fineRepoList = await Promise.all(repoList.map(async (repo) => {
-        const prompt = `${languagePromptMap[language]}. Please give me a brief recommendation (within 50 words) for this repository: ${summary(repo)}, ${repo.readme?.substring(0, 1500)}`;
-        const recommendation = await generate(prompt);
+        const recommendation = await prepareRecommendationForRepo(repo, language);
         return {
             ...repo,
-            recommendation: recommendation
-        };
+            recommendation: recommendation || "No recommendation available"
+        } as FineRepoDto;
     }));
     logger.info({count: fineRepoList.length}, `Prepared recommendations for ${fineRepoList.length}/${repoList.length} repositories`);
     return fineRepoList;

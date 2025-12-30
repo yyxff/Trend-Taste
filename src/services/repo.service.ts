@@ -4,27 +4,26 @@ import type { RepoBasicDto } from "../models/RepoBasicDto";
 import { findRepoById, createRepo, findRepoByOwnerAndName } from "../repositories/repo.repo";
 import { fetchRepoMeta } from "../utils/github-api";
 import { parseRepoMeta } from "../parser/repo-parser";
-import { acquireLock, releaseLock } from "../tasks/github-trending";
 import { logger } from "../utils/logger";
+import { repoFetchingLock } from "../utils/lock";
 
 export async function prepareRepo(repoBasicDto: RepoBasicDto): Promise<Repo | null> {
     const servLogger = logger.child({repo: `${repoBasicDto.owner}/${repoBasicDto.name}`});
     try {
         const maxRetries = 5;
         const delayMs = 1000;
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-            servLogger.info(`Preparing repo, attempt ${attempt + 1}/${maxRetries}`);
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
             const repo = await findRepoByOwnerAndName(repoBasicDto.owner, repoBasicDto.name);
             if (repo) {
                 servLogger.info(`Repo retrieved from database successfully`);
                 return repo;
-            } else {
-                const repoDto = await fetchRepoWithLock(repoBasicDto);
-                if (repoDto) {
-                    const repo = await saveRepo(repoDto);
-                    servLogger.info(`Repo prepared successfully`);
-                    return repo;
-                }
+            }
+            servLogger.info(`Repo not found in database, fetching from GitHub API, attempt ${attempt}/${maxRetries}`);
+            const repoDto = await fetchRepoWithLock(repoBasicDto);
+            if (repoDto) {
+                const repo = await saveRepo(repoDto);
+                servLogger.info(`Repo prepared successfully`);
+                return repo;
             }
             await new Promise(resolve => setTimeout(resolve, delayMs)); // wait for 1 second before retrying
         }
@@ -40,7 +39,7 @@ async function fetchRepoWithLock(repoBasicDto: RepoBasicDto): Promise<RepoDto | 
     const lockKey = `${repoBasicDto.owner}/${repoBasicDto.name}`;
     let locked = false;
     try {
-        locked = acquireLock(lockKey);
+        locked = repoFetchingLock.acquire(lockKey);
         if (locked) {
             const repoMetaData = await fetchRepoMeta(repoBasicDto.owner, repoBasicDto.name);
             const repoDto = parseRepoMeta(repoMetaData, repoBasicDto);
@@ -51,7 +50,7 @@ async function fetchRepoWithLock(repoBasicDto: RepoBasicDto): Promise<RepoDto | 
         throw new Error(`Error fetching repo meta ${lockKey}: ${error}`);
     } finally {
         if (locked) {
-            releaseLock(lockKey);
+            repoFetchingLock.release(lockKey);
         }
     }
 }

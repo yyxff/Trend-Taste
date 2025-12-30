@@ -1,0 +1,11 @@
+model Recommendation {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  repoId    String   
+  language  LanguageType
+  content   String
+
+  @@unique([repoId, language])
+}
