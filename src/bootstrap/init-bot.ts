@@ -2,6 +2,7 @@ import { addTask } from "../scheduled/scheduler";
 import { getAllEnabledTasks } from "../services/task.service";
 import { Client } from "discord.js";
 import { deployCommands } from "../deploy-commands";
+import { logger } from "../utils/logger";
 
 /**
  * Initialize the bot:
@@ -32,7 +33,7 @@ async function initTasks() {
  */
 async function deployCommandsToAllGuilds(client: Client) {
     await Promise.all(client.guilds.cache.map(async (guild) => {
-        console.log(`Deploying commands to guild: ${guild.name} (${guild.id})`);
+        logger.debug({guildName: guild.name, guildId: guild.id}, "Deploying commands to guild");
         await deployCommands({ guildId: guild.id });
     }));
 }

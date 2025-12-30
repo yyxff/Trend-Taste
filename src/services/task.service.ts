@@ -3,6 +3,7 @@ import { prisma } from "../db";
 import { DateTime } from "luxon";
 import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone, getTasksByEnabledStatus } from "../repositories/task.repo";
 import { addTask, removeTask, rescheduleTask } from "../scheduled/scheduler";
+import { logger } from "../utils/logger";
 
 /**
  * Get a task by its ID
@@ -91,7 +92,7 @@ export async function setTaskType(channelId: string, taskType: TaskType): Promis
 export async function enableTask(channelId: string): Promise<Task> {
     try {
         const task = await upsertTaskEnabledStatus(channelId, true);
-        console.log('enabled task:', task.id);
+        logger.info({taskId: task.id}, "enabled task");
         if (task.schedule && task.timezone) {
             const utcTime = DateTime.fromJSDate(task.schedule, { zone: "utc" });
             const localTime = utcTime.setZone(task.timezone)
@@ -112,7 +113,7 @@ export async function enableTask(channelId: string): Promise<Task> {
 export async function disableTask(channelId: string): Promise<Task> {
     try {
         const task = await upsertTaskEnabledStatus(channelId, false);
-        console.log('disabled task:', task.id);
+        logger.info({taskId: task.id}, "disabled task");
         if (task.schedule && task.timezone) {
             const utcTime = DateTime.fromJSDate(task.schedule, { zone: "utc" });
             const localTime = utcTime.setZone(task.timezone)

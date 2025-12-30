@@ -1,6 +1,7 @@
 import { getTaskById } from "../services/task.service";
 import { runGithubTrendingTask } from "../tasks/github-trending";
 import { client } from "../bot";
+import { logger } from "../utils/logger";
 
 /**
  * Run the a task for the given taskId
@@ -8,19 +9,20 @@ import { client } from "../bot";
  * @returns void
  */
 export async function runTask(taskId: number): Promise<boolean> {
+    const runnerLogger = logger.child({taskId});
     const task = await getTaskById(taskId);
     if (!task) {
-        console.error('No task found for taskId:', taskId);
+        runnerLogger.error("No task found for taskId:");
         return false;
     }
     switch (task.taskType) {
         case 'GITHUB_TRENDING': {
             await runGithubTrendingTask(client, task.channelId, task.language);
-            console.log('Github trending task completed for taskId:', taskId);
+            runnerLogger.info("Github trending task completed");
             break;
         }
         default: {
-            console.error('Unsupported task type for taskId:', taskId);
+            runnerLogger.error("Unsupported task type");
             return false;
         }
     }

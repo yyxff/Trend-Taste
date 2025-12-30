@@ -3,14 +3,15 @@ import { deployCommands } from "../src/deploy-commands";
 import { commands } from "../src/commands/index";
 import { discordConfig } from "../src/config";
 import { runGithubTrendingTask } from "../src/tasks/github-trending";
+import { logger } from "../src/utils/logger";
 
 const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
 });
 
 client.once("clientReady", () => {
-    console.log("[TEST] Discord bot is ready! 🤖");
-    runGithubTrendingTask(client);
+    logger.info("[TEST] Discord bot is ready! 🤖");
+    runGithubTrendingTask(client, process.env.TEST_CHANNEL_ID!, "EN");
 });
 
 client.on("guildCreate", async (guild) => {
@@ -18,7 +19,7 @@ client.on("guildCreate", async (guild) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isCommand()) {
+    if (!interaction.isCommand() || !interaction.isChatInputCommand()) {
         return;
     }
     const { commandName } = interaction;

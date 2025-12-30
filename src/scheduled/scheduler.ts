@@ -1,5 +1,6 @@
 import { CronJob } from "cron";
 import { runTask } from "./runner.js";
+import { logger } from "../utils/logger.js";
 
 // A set of taskId
 // Only enabled tasks are stored here
@@ -12,18 +13,19 @@ const EnabledTasks: Map<number, CronJob> = new Map();
  * @param timezone
  */
 export function addTask(taskId: number, time: string, timezone: string) {
+    const schedulerLogger = logger.child({taskId});
     const job = new CronJob(
         time,
         async () => {
             try {
-                console.log('Task running for taskId:', taskId);
+                schedulerLogger.info("Task running");
                 const success = await runTask(taskId)
                 if (!success) {
-                    console.error('Task failed for taskId:', taskId);
+                    schedulerLogger.error("Task failed");
                     removeTask(taskId);
                 }
             } catch (error) {
-                console.error('Error running task for taskId:', taskId, error);
+                schedulerLogger.error({error}, "Error running task");
             }
         },
         null,
@@ -31,7 +33,7 @@ export function addTask(taskId: number, time: string, timezone: string) {
         timezone
     );
     EnabledTasks.set(taskId, job);
-    console.log('add task for taskId:', taskId);
+    schedulerLogger.info("Added task");
 }
 
 /**
@@ -39,13 +41,14 @@ export function addTask(taskId: number, time: string, timezone: string) {
  * @param taskId 
  */
 export function removeTask(taskId: number) {
+    const schedulerLogger = logger.child({taskId});
     const job = EnabledTasks.get(taskId);
     if (job) {
         job.stop();
         EnabledTasks.delete(taskId);
-        console.log('remove task for taskId:', taskId);
+        schedulerLogger.info("Removed task");
     } else {
-        console.log('no enabled task found for taskId:', taskId);
+        schedulerLogger.info("No enabled task found");
     }
 }
 

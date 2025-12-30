@@ -2,14 +2,15 @@ import { Client } from "discord.js";
 import { deployCommands } from "../src/deploy-commands";
 import { commands } from "../src/commands/index";
 import { discordConfig } from "../src/config";
-import { pushTrendingToChannel } from "../src/tasks/github-trending";
+import { pushTrendingToChannel, formatRepoToEmbed } from "../src/tasks/github-trending";
+import { logger } from "../src/utils/logger";
 
 const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
 });
 
 client.once("clientReady", () => {
-    console.log("[TEST] Discord bot is ready! 🤖");
+    logger.info("[TEST] Discord bot is ready! 🤖");
     const fineRepoList = [
         {
             owner: "facebook",
@@ -22,10 +23,11 @@ client.once("clientReady", () => {
             readme: "readme",
             link: "https://github.com/anthropics/skills",
             topics: ["topic"],
-            Recommendation: "recommendation"
+            recommendation: "recommendation"
         }
     ];
-    pushTrendingToChannel(client, fineRepoList);
+    const embedList = fineRepoList.map(formatRepoToEmbed);
+    pushTrendingToChannel(client, process.env.TEST_CHANNEL_ID!, embedList);
 });
 
 client.on("guildCreate", async (guild) => {
@@ -33,7 +35,7 @@ client.on("guildCreate", async (guild) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isCommand()) {
+    if (!interaction.isCommand() || !interaction.isChatInputCommand()) {
         return;
     }
     const { commandName } = interaction;

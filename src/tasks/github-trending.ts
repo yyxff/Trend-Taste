@@ -1,5 +1,4 @@
 import { Client, EmbedBuilder } from "discord.js";
-import { discordConfig } from "../config";
 import { parseRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
 import { fetchGithubTrending } from "../utils/github-rss-api";
 import { fetchRepoMeta } from "../utils/github-api";
@@ -7,9 +6,10 @@ import type { Repo } from "../models/Repo";
 import type { FineRepo } from "../models/FineRepo";
 import { generate } from "../ai-api/gemini";
 import { summary } from "../models/Repo";
-import { format } from "node:path";
 import type { LanguageType } from "@prisma/client";
 import { languagePromptMap } from "../constants/language";
+import { logger } from "../utils/logger";
+
 /**
  * Runs the github trending task
  * 1. Get trending repositories from github rss api
@@ -32,7 +32,7 @@ export async function runGithubTrendingTask(client: Client, channelId: string, l
         await pushSummaryToChannel(client, channelId, embedSummary);
         await pushTrendingToChannel(client, channelId, embedRepo);
     } catch (error) {
-        console.error(error);
+        logger.error({error}, "Error running github trending task");
     }
 }
 
@@ -133,7 +133,7 @@ function formatSummaryToEmbed(summary: string): EmbedBuilder {
  * @param repoList repo list
  * @returns embed
 */
-function formatRepoToEmbed(repo: FineRepo): EmbedBuilder {
+export function formatRepoToEmbed(repo: FineRepo): EmbedBuilder {
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setTitle(`${repo.owner}/${repo.name}`)
