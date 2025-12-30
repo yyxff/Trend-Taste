@@ -8,7 +8,8 @@ import type { FineRepo } from "../models/FineRepo";
 import { generate } from "../ai-api/gemini";
 import { summary } from "../models/Repo";
 import { format } from "node:path";
-
+import type { LanguageType } from "@prisma/client";
+import { languagePromptMap } from "../constants/language";
 /**
  * Runs the github trending task
  * 1. Get trending repositories from github rss api
@@ -19,17 +20,17 @@ import { format } from "node:path";
  * 5. Pushes the embed message to the channel
  * @param client discord client
  */
-export async function runGithubTrendingTask(client: Client) {
+export async function runGithubTrendingTask(client: Client, channelId: string, language: LanguageType) {
     try {
         const repoList = await prepareTrendingRepos();
-        const fineRepoList = await prepareFineRepoList(repoList);
-        const summary = await prepareSummary(fineRepoList);
+        const fineRepoList = await prepareFineRepoList(repoList, language);
+        const summary = await prepareSummary(fineRepoList, language);
 
         const embedSummary = formatSummaryToEmbed(summary);
         const embedRepo = fineRepoList.map(formatRepoToEmbed);
 
-        await pushSummaryToChannel(client, embedSummary);
-        await pushTrendingToChannel(client, embedRepo);
+        await pushSummaryToChannel(client, channelId, embedSummary);
+        await pushTrendingToChannel(client, channelId, embedRepo);
     } catch (error) {
         console.error(error);
     }
@@ -40,9 +41,9 @@ export async function runGithubTrendingTask(client: Client) {
  * @param repoList 
  * @returns summary string
  */
-async function prepareSummary(repoList: FineRepo[]): Promise<string> {
+async function prepareSummary(repoList: FineRepo[], language: LanguageType): Promise<string> {
     const repoRecommendations = repoList.map(repo => repo.recommendation).join('\n');
-    const prompt = `Please give me a brief summary (within 100 words for the whole summary! You only need to include the most valuable information) for today's repositories: ${repoRecommendations}`;
+    const prompt = `${languagePromptMap[language]}. Please give me a brief summary (within 100 words for the whole summary! You only need to include the most valuable information) for today's repositories: ${repoRecommendations}`;
     const summary = await generate(prompt);
     return summary;
 }
@@ -52,9 +53,9 @@ async function prepareSummary(repoList: FineRepo[]): Promise<string> {
  * @param repoList repo list with basic information
  * @returns repo list with recommendations
  */
-async function prepareFineRepoList(repoList: Repo[]): Promise<FineRepo[]> {
+async function prepareFineRepoList(repoList: Repo[], language: LanguageType): Promise<FineRepo[]> {
     const fineRepoList = repoList.map(async (repo) => {
-        const prompt = `Please give me a brief recommendation (within 50 words) for this repository: ${summary(repo)}, ${repo.readme?.substring(0, 1500)}`;
+        const prompt = `${languagePromptMap[language]}. Please give me a brief recommendation (within 50 words) for this repository: ${summary(repo)}, ${repo.readme?.substring(0, 1500)}`;
         const recommendation = await generate(prompt);
         return {
             ...repo,
@@ -84,8 +85,8 @@ async function prepareTrendingRepos(): Promise<Repo[]> {
  * @param client discord client
  * @param repoList repo list
  */
-export async function pushTrendingToChannel(client: Client, repoList: EmbedBuilder[]) {
-    const channel = await client.channels.fetch(discordConfig.DISCORD_CHANNEL_ID);
+export async function pushTrendingToChannel(client: Client, channelId: string, repoList: EmbedBuilder[]) {
+    const channel = await client.channels.fetch(channelId);
     if (!channel || !channel.isTextBased() || !('send' in channel)) {
         throw new Error("Channel not found or not text based");
     }
@@ -99,8 +100,8 @@ export async function pushTrendingToChannel(client: Client, repoList: EmbedBuild
  * @param client discord client
  * @param summary summary string
  */
-async function pushSummaryToChannel(client: Client, summary: EmbedBuilder) {
-    const channel = await client.channels.fetch(discordConfig.DISCORD_CHANNEL_ID);
+async function pushSummaryToChannel(client: Client, channelId: string, summary: EmbedBuilder) {
+    const channel = await client.channels.fetch(channelId);
     if (!channel || !channel.isTextBased() || !('send' in channel)) {
         throw new Error("Channel not found or not text based");
     }

@@ -1,7 +1,25 @@
 import type { Task, TaskType, LanguageType } from "@prisma/client";
+import { prisma } from "../db";
 import { DateTime } from "luxon";
 import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone } from "../repositories/task.repo";
-import { addTask, removeTask } from "../scheduled/scheduler";
+import { addTask, removeTask, rescheduleTask } from "../scheduled/scheduler";
+
+/**
+ * Get a task by its ID
+ * @param taskId The ID of the task to retrieve
+ * @returns The task if found, otherwise null
+ */
+export async function getTaskById(taskId: number): Promise<Task | null> {
+    try {
+        const task = await prisma.task.findUnique({
+            where: { id: taskId }
+        });
+        return task;
+    } catch (error) {
+        throw error;
+    }
+}
+
 /**
  * set the schedule for a task
  * @param channelId 
@@ -11,6 +29,9 @@ import { addTask, removeTask } from "../scheduled/scheduler";
 export async function setTaskSchedule(channelId: string, schedule: Date): Promise<Task> {
     try {
         const task = await upsertTaskSchedule(channelId, schedule);
+        if (task.enabled && task.timezone) {
+            rescheduleTask(task.id, `${schedule.getMinutes()} ${schedule.getHours()} * * *`, task.timezone);
+        }
         return task;
     } catch (error) {
         throw error;

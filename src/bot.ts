@@ -3,7 +3,7 @@ import { deployCommands } from "./deploy-commands";
 import { commands } from "./commands/index";
 import { discordConfig } from "./config";
 
-const client = new Client({
+export const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
 });
 
