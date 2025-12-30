@@ -59,6 +59,7 @@ async function prepareSummary(repoList: FineRepoDto[], language: LanguageType): 
     const repoRecommendations = repoList.map(repo => repo.recommendation).join('\n');
     const prompt = `${languagePromptMap[language]}. Please give me a brief summary (within 100 words for the whole summary! You only need to include the most valuable information) for today's repositories: ${repoRecommendations}`;
     const summary = await generate(prompt);
+    logger.info("Prepared summary for trending repositories");
     return summary;
 }
 
@@ -68,15 +69,16 @@ async function prepareSummary(repoList: FineRepoDto[], language: LanguageType): 
  * @returns repo list with recommendations
  */
 async function prepareFineRepoList(repoList: RepoDto[], language: LanguageType): Promise<FineRepoDto[]> {
-    const fineRepoList = repoList.map(async (repo) => {
+    const fineRepoList = await Promise.all(repoList.map(async (repo) => {
         const prompt = `${languagePromptMap[language]}. Please give me a brief recommendation (within 50 words) for this repository: ${summary(repo)}, ${repo.readme?.substring(0, 1500)}`;
         const recommendation = await generate(prompt);
         return {
             ...repo,
             recommendation: recommendation
         };
-    });
-    return Promise.all(fineRepoList);
+    }));
+    logger.info({count: fineRepoList.length}, `Prepared recommendations for ${fineRepoList.length}/${repoList.length} repositories`);
+    return fineRepoList;
 }
 
 /**
@@ -98,6 +100,7 @@ async function prepareTrendingRepos(): Promise<RepoDto[]> {
         };
     }))
     const filteredRepoDtoList = repoDtoList.filter( repo => repo !== null) as RepoDto[];
+    logger.info({count: filteredRepoDtoList.length}, `Prepared ${filteredRepoDtoList.length} trending repositories`);
     return filteredRepoDtoList;
 }
 
@@ -107,12 +110,18 @@ async function prepareTrendingRepos(): Promise<RepoDto[]> {
  * @param repoList repo list
  */
 export async function pushTrendingToChannel(client: Client, channelId: string, repoList: EmbedBuilder[]) {
-    const channel = await client.channels.fetch(channelId);
-    if (!channel || !channel.isTextBased() || !('send' in channel)) {
-        throw new Error("Channel not found or not text based");
-    }
-    for (const repo of repoList) {
-        await channel.send({ embeds: [repo] });
+    try {
+
+        const channel = await client.channels.fetch(channelId);
+        if (!channel || !channel.isTextBased() || !('send' in channel)) {
+            throw new Error("Channel not found or not text based");
+        }
+        await Promise.all(repoList.map(async (repo) => {
+            await channel.send({ embeds: [repo] });
+        }));
+        logger.info({channelId}, "Pushed trending repositories to channel successfully");
+    } catch (error) {
+        logger.error({error, channelId}, "Error pushing trending repositories to channel");
     }
 }
 
@@ -122,11 +131,16 @@ export async function pushTrendingToChannel(client: Client, channelId: string, r
  * @param summary summary string
  */
 async function pushSummaryToChannel(client: Client, channelId: string, summary: EmbedBuilder) {
-    const channel = await client.channels.fetch(channelId);
-    if (!channel || !channel.isTextBased() || !('send' in channel)) {
-        throw new Error("Channel not found or not text based");
+    try {
+        const channel = await client.channels.fetch(channelId);
+        if (!channel || !channel.isTextBased() || !('send' in channel)) {
+            throw new Error("Channel not found or not text based");
+        }
+        await channel.send({ embeds: [summary] });
+        logger.info({channelId}, "Pushed summary to channel successfully");
+    } catch (error) {
+        logger.error({error, channelId}, "Error pushing summary to channel");
     }
-    await channel.send({ embeds: [summary] });
 }
 
 /**

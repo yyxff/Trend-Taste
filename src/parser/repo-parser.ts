@@ -2,6 +2,7 @@ import type { RepoDto } from "../models/RepoDto";
 import type { RepoBasicDto } from "../models/RepoBasicDto";
 import { XMLParser } from "fast-xml-parser";
 import { Language } from "@google/genai";
+import { logger } from "../utils/logger";
 
 /**
  * Parses the meta data of a repository
@@ -62,5 +63,6 @@ export function parseRepoListFromRSS(rssRawData: string): RepoBasicDto[] {
         };
         return repo;
     }).filter((repo: RepoBasicDto | null) => repo !== null);
+    logger.info({count: repoList.length}, `Parsed ${repoList.length} repositories from RSS data`);
     return repoList;
 }
