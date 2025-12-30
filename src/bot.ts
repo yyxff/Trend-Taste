@@ -2,16 +2,14 @@ import { Client } from "discord.js";
 import { deployCommands } from "./deploy-commands";
 import { commands } from "./commands/index";
 import { discordConfig } from "./config";
+import { initBot } from "./bootstrap/init-bot";
 
 export const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
 });
 
-client.once("clientReady", () => {
-    client.guilds.cache.forEach(async (guild) => {
-        console.log(`Deploying commands to guild: ${guild.name} (${guild.id})`);
-        await deployCommands({ guildId: guild.id });
-    });
+client.once("clientReady", async () => {
+    await initBot(client);    
     console.log("Discord bot is ready! 🤖");
 });
 

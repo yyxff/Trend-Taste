@@ -1,7 +1,7 @@
 import type { Task, TaskType, LanguageType } from "@prisma/client";
 import { prisma } from "../db";
 import { DateTime } from "luxon";
-import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone } from "../repositories/task.repo";
+import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone, getTasksByEnabledStatus } from "../repositories/task.repo";
 import { addTask, removeTask, rescheduleTask } from "../scheduled/scheduler";
 
 /**
@@ -15,6 +15,19 @@ export async function getTaskById(taskId: number): Promise<Task | null> {
             where: { id: taskId }
         });
         return task;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * 
+ * @returns 
+ */
+export async function getAllEnabledTasks(): Promise<Task[]> {
+    try {
+        const tasks = await getTasksByEnabledStatus(true);
+        return tasks;
     } catch (error) {
         throw error;
     }

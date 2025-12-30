@@ -9,6 +9,14 @@ export async function getTaskByChannelId(channelId: string): Promise<Task | null
     });
 }
 
+export async function getTasksByEnabledStatus(enabledStatus: boolean): Promise<Task[]> {
+    return prisma.task.findMany({
+        where: {
+            enabled: enabledStatus
+        }
+    });
+}   
+
 export async function upsertTaskEnabledStatus(channelId: string, enabled: boolean): Promise<Task> {
     return _upsertTask(channelId, { enabled });
 }
