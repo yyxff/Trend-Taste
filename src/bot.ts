@@ -2,7 +2,6 @@ import { Client } from "discord.js";
 import { deployCommands } from "./deploy-commands";
 import { commands } from "./commands/index";
 import { discordConfig } from "./config";
-import { launchGithubTrendingTask } from "./scheduled/github-trending";
 
 const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
@@ -13,7 +12,6 @@ client.once("clientReady", () => {
         console.log(`Deploying commands to guild: ${guild.name} (${guild.id})`);
         await deployCommands({ guildId: guild.id });
     });
-    launchGithubTrendingTask(client);
     console.log("Discord bot is ready! 🤖");
 });
 

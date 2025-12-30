@@ -1,6 +1,7 @@
 import type { Task, TaskType, LanguageType } from "@prisma/client";
+import { DateTime } from "luxon";
 import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone } from "../repositories/task.repo";
-
+import { addTask, removeTask } from "../scheduled/scheduler";
 /**
  * set the schedule for a task
  * @param channelId 
@@ -37,9 +38,37 @@ export async function setTaskType(channelId: string, taskType: TaskType): Promis
  * @param enabled 
  * @returns The updated or created Task
  */
-export async function setTaskEnabledStatus(channelId: string, enabled: boolean): Promise<Task> {
+export async function enableTask(channelId: string): Promise<Task> {
     try {
-        const task = await upsertTaskEnabledStatus(channelId, enabled);
+        const task = await upsertTaskEnabledStatus(channelId, true);
+        console.log('enabled task:', task.id);
+        if (task.schedule && task.timezone) {
+            const utcTime = DateTime.fromJSDate(task.schedule, { zone: "utc" });
+            const localTime = utcTime.setZone(task.timezone)
+            const cronExprLocal = `${localTime.minute} ${localTime.hour} * * *`;
+            addTask(task.id, cronExprLocal, task.timezone);
+        }
+        return task;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Disable a task
+ * @param channelId 
+ * @returns The updated or created Task
+ */
+export async function disableTask(channelId: string): Promise<Task> {
+    try {
+        const task = await upsertTaskEnabledStatus(channelId, false);
+        console.log('disabled task:', task.id);
+        if (task.schedule && task.timezone) {
+            const utcTime = DateTime.fromJSDate(task.schedule, { zone: "utc" });
+            const localTime = utcTime.setZone(task.timezone)
+            const cronExprLocal = `${localTime.minute} ${localTime.hour} * * *`;
+            removeTask(task.id);
+        }
         return task;
     } catch (error) {
         throw error;

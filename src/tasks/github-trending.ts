@@ -1,4 +1,3 @@
-import cron from "node-cron";
 import { Client, EmbedBuilder } from "discord.js";
 import { discordConfig } from "../config";
 import { parseRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
