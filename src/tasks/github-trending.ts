@@ -1,14 +1,28 @@
 import { Client, EmbedBuilder } from "discord.js";
 import { parseRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
 import { fetchGithubTrending } from "../utils/github-rss-api";
-import { fetchRepoMeta } from "../utils/github-api";
-import type { Repo } from "../models/Repo";
-import type { FineRepo } from "../models/FineRepo";
+import type { RepoDto } from "../models/RepoDto";
+import type { FineRepoDto } from "../models/FineRepoDto";
 import { generate } from "../ai-api/gemini";
-import { summary } from "../models/Repo";
+import { summary } from "../models/RepoDto";
 import type { LanguageType } from "@prisma/client";
 import { languagePromptMap } from "../constants/language";
 import { logger } from "../utils/logger";
+import { prepareRepo } from "../services/repo.service";
+
+const fetchingLock = new Set<string>();
+
+export function acquireLock(fullName: string): boolean {
+    if (fetchingLock.has(fullName)) {
+        return false;
+    }
+    fetchingLock.add(fullName);
+    return true;
+}
+
+export function releaseLock(fullName: string): void {
+    fetchingLock.delete(fullName);
+}
 
 /**
  * Runs the github trending task
@@ -41,7 +55,7 @@ export async function runGithubTrendingTask(client: Client, channelId: string, l
  * @param repoList 
  * @returns summary string
  */
-async function prepareSummary(repoList: FineRepo[], language: LanguageType): Promise<string> {
+async function prepareSummary(repoList: FineRepoDto[], language: LanguageType): Promise<string> {
     const repoRecommendations = repoList.map(repo => repo.recommendation).join('\n');
     const prompt = `${languagePromptMap[language]}. Please give me a brief summary (within 100 words for the whole summary! You only need to include the most valuable information) for today's repositories: ${repoRecommendations}`;
     const summary = await generate(prompt);
@@ -53,7 +67,7 @@ async function prepareSummary(repoList: FineRepo[], language: LanguageType): Pro
  * @param repoList repo list with basic information
  * @returns repo list with recommendations
  */
-async function prepareFineRepoList(repoList: Repo[], language: LanguageType): Promise<FineRepo[]> {
+async function prepareFineRepoList(repoList: RepoDto[], language: LanguageType): Promise<FineRepoDto[]> {
     const fineRepoList = repoList.map(async (repo) => {
         const prompt = `${languagePromptMap[language]}. Please give me a brief recommendation (within 50 words) for this repository: ${summary(repo)}, ${repo.readme?.substring(0, 1500)}`;
         const recommendation = await generate(prompt);
@@ -70,14 +84,21 @@ async function prepareFineRepoList(repoList: Repo[], language: LanguageType): Pr
  * Prepare them with meta information from github api
  * @returns repo list
  */
-async function prepareTrendingRepos(): Promise<Repo[]> {
+async function prepareTrendingRepos(): Promise<RepoDto[]> {
     const rssData = await fetchGithubTrending();
     const repoList = parseRepoListFromRSS(rssData);
-    await Promise.all(repoList.map(async (repo) => {
-        const meta = await fetchRepoMeta(repo.owner, repo.name);
-        parseRepoMeta(meta, repo);
+    const repoDtoList = await Promise.all(repoList.map(async (repoBasicDto) => {
+        const repo = await prepareRepo(repoBasicDto);
+        if (!repo) {
+            return null;
+        }
+        return {
+            ...repo,
+            readme: repoBasicDto.readme
+        };
     }))
-    return repoList;
+    const filteredRepoDtoList = repoDtoList.filter( repo => repo !== null) as RepoDto[];
+    return filteredRepoDtoList;
 }
 
 /**
@@ -133,11 +154,11 @@ function formatSummaryToEmbed(summary: string): EmbedBuilder {
  * @param repoList repo list
  * @returns embed
 */
-export function formatRepoToEmbed(repo: FineRepo): EmbedBuilder {
+export function formatRepoToEmbed(repo: FineRepoDto): EmbedBuilder {
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setTitle(`${repo.owner}/${repo.name}`)
-        .setURL(repo.link)
+        .setURL(repo.url)
         .setTimestamp()
         .setFooter({ text: 'Trend Taste', iconURL: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png' });
 

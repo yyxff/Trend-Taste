@@ -1,5 +1,7 @@
-import type { Repo } from "../models/Repo";
+import type { RepoDto } from "../models/RepoDto";
+import type { RepoBasicDto } from "../models/RepoBasicDto";
 import { XMLParser } from "fast-xml-parser";
+import { Language } from "@google/genai";
 
 /**
  * Parses the meta data of a repository
@@ -7,17 +9,21 @@ import { XMLParser } from "fast-xml-parser";
  * @param repo the repository to overwrite
  * @returns the parsed repository
  */
-export function parseRepoMeta(meta: any, repo: Repo): Repo {
+export function parseRepoMeta(meta: any, repoBasicDto: RepoBasicDto): RepoDto {
     if (!meta) {
         throw new Error("Meta data is null");
     }
-    repo.stars = meta.stargazers_count;
-    repo.forks = meta.forks;
-    repo.watchings = meta.subscribers_count;
-    repo.description = meta.description;
-    repo.topics = meta.topics;
-    repo.language = meta.language;
-    return repo;
+    const repoDto = {
+        ...repoBasicDto,
+        id: meta.id.toString(),
+        stars: meta.stargazers_count,
+        forks: meta.forks,
+        watchings: meta.subscribers_count,
+        description: meta.description,
+        topics: meta.topics,
+        language: meta.language,
+    };
+    return repoDto;
 }
 
 
@@ -27,7 +33,7 @@ export function parseRepoMeta(meta: any, repo: Repo): Repo {
  * @param rssRawData the raw RSS data
  * @returns the list of repositories
  */
-export function parseRepoListFromRSS(rssRawData: string): Repo[] {
+export function parseRepoListFromRSS(rssRawData: string): RepoBasicDto[] {
     // parse the rss raw data into rss xml data
     const parser = new XMLParser({
         ignoreAttributes: false,
@@ -48,13 +54,13 @@ export function parseRepoListFromRSS(rssRawData: string): Repo[] {
             return null;
         }
 
-        const repo: Repo = {
+        const repo: RepoBasicDto = {
             owner: repoName[0],
             name: repoName[1],
-            link: link,
-            readme: readme
+            url: link,
+            readme: readme,
         };
         return repo;
-    }).filter((repo: Repo | null) => repo !== null);
+    }).filter((repo: RepoBasicDto | null) => repo !== null);
     return repoList;
 }

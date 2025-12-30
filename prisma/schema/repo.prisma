@@ -12,4 +12,6 @@ model Repo {
   watchings Int?
   language  String?
   topics    String[]
+
+  @@unique([owner, name])
 }

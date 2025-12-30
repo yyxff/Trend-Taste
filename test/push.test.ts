@@ -4,6 +4,7 @@ import { commands } from "../src/commands/index";
 import { discordConfig } from "../src/config";
 import { pushTrendingToChannel, formatRepoToEmbed } from "../src/tasks/github-trending";
 import { logger } from "../src/utils/logger";
+import type { FineRepoDto } from "../src/models/FineRepoDto";
 
 const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
@@ -21,11 +22,11 @@ client.once("clientReady", () => {
             language: "language",
             description: "description",
             readme: "readme",
-            link: "https://github.com/anthropics/skills",
+            url: "https://github.com/anthropics/skills",
             topics: ["topic"],
             recommendation: "recommendation"
         }
-    ];
+    ] as FineRepoDto[];
     const embedList = fineRepoList.map(formatRepoToEmbed);
     pushTrendingToChannel(client, process.env.TEST_CHANNEL_ID!, embedList);
 });
