@@ -1,10 +1,9 @@
 import type { LanguageType } from "@prisma/client";
-import type { RepoDto } from "../models/RepoDto";
+import type { RepoDto } from "../dtos/Repo.dto";
 import { findRecommendationByRepoAndLanguage, createRecommendation } from "../repositories/recommendation.repo";
 import { logger } from "../utils/logger";
 import { aiFetchingLock } from "../utils/lock";
 import { generateRecommendationForRepo } from "../ai-api/ai-api";
-import { create } from "node:domain";
 
 /**
  * Prepare recommendation for a repository
@@ -27,12 +26,13 @@ export async function prepareRecommendationForRepo(repoDto: RepoDto, language: L
             servLogger.info(`No existing recommendation found, attempt ${attempt}/${maxRetries}`);
             const generatedRecommendation = await generateRecommendationWithLock(repoDto, language);
             if (generatedRecommendation) {
-                servLogger.info("Generated new recommendation successfully");
+                createRecommendation(repoDto.id, language, generatedRecommendation);
+                servLogger.info("Stored new recommendation successfully");
                 return generatedRecommendation;
             }
             await new Promise(resolve => setTimeout(resolve, delayMs));
         }
-        servLogger.warn("Recommendation not found after multiple attempts");
+        servLogger.warn(`Recommendation not found after ${maxRetries} attempts`);
         return null;
     } catch (error) {
         servLogger.error({error}, "Error preparing recommendation");
@@ -54,8 +54,7 @@ export async function generateRecommendationWithLock(repoDto: RepoDto, language:
         locked = aiFetchingLock.acquire(lockKey);
         if (locked) {
             const recommendation = await generateRecommendationForRepo(repoDto, language);
-            createRecommendation(repoDto.id, language, recommendation.recommendation!);
-            servLogger.info("Generated and stored new recommendation");
+            servLogger.info("Generated new recommendation");
             return recommendation.recommendation!;
         }
         return null;

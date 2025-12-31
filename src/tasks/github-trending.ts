@@ -1,23 +1,20 @@
 import { Client, EmbedBuilder } from "discord.js";
-import { parseRepoListFromRSS, parseRepoMeta } from "../parser/repo-parser";
+import { parseRepoListFromRSS } from "../parser/repo-parser";
 import { fetchGithubTrending } from "../utils/github-rss-api";
-import type { RepoDto } from "../models/RepoDto";
-import type { FineRepoDto } from "../models/FineRepoDto";
-import { generate } from "../ai-api/gemini";
-import { summary } from "../models/RepoDto";
+import type { RepoDto } from "../dtos/Repo.dto";
+import type { FineRepoDto } from "../dtos/FineRepo.dto";
 import type { LanguageType } from "@prisma/client";
-import { languagePromptMap } from "../constants/language";
 import { logger } from "../utils/logger";
 import { prepareRepo } from "../services/repo.service";
-import { LockSet } from "../utils/lock";
 import { prepareRecommendationForRepo } from "../services/recommendation.service";
+import { prepareSummaryForRepoGroup } from "../services/summary.service";
 
 
 /**
  * Runs the github trending task
  * 1. Get trending repositories from github rss api
  *    Prepare them with meta information from github api
- * 2. Add recommendations based on AI to the repo list
+ * 2. Prepare recommendations based on AI to the repo list
  * 3. Prepare a brief summary for the whole repo list
  * 4. Build their embed format
  * 5. Pushes the embed message to the channel
@@ -45,9 +42,11 @@ export async function runGithubTrendingTask(client: Client, channelId: string, l
  * @returns summary string
  */
 async function prepareSummary(repoList: FineRepoDto[], language: LanguageType): Promise<string> {
-    const repoRecommendations = repoList.map(repo => repo.recommendation).join('\n');
-    const prompt = `${languagePromptMap[language]}. Please give me a brief summary (within 100 words for the whole summary! You only need to include the most valuable information) for today's repositories: ${repoRecommendations}`;
-    const summary = await generate(prompt);
+    const summary = await prepareSummaryForRepoGroup(repoList, language);
+    if (!summary) {
+        logger.error("Failed to prepare summary for repo group");
+        throw new Error("Failed to prepare summary for repo group");
+    }
     logger.info("Prepared summary for trending repositories");
     return summary;
 }

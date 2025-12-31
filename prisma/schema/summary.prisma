@@ -1,0 +1,11 @@
+model Summary {
+    id            Int      @id @default(autoincrement())
+    createdAt     DateTime @default(now())
+
+    repoGroupHash String
+    repoGroup     String[]
+    language      LanguageType
+    content       String
+
+    @@unique([repoGroupHash, language])
+}

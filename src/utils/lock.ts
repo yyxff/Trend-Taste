@@ -24,3 +24,4 @@ export class LockSet implements ILockSet {
 
 export const repoFetchingLock = new LockSet();
 export const aiFetchingLock = new LockSet();
+export const summaryFetchingLock = new LockSet();

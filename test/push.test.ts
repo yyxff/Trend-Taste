@@ -4,7 +4,7 @@ import { commands } from "../src/commands/index";
 import { discordConfig } from "../src/config";
 import { pushTrendingToChannel, formatRepoToEmbed } from "../src/tasks/github-trending";
 import { logger } from "../src/utils/logger";
-import type { FineRepoDto } from "../src/models/FineRepoDto";
+import type { FineRepoDto } from "../src/dtos/FineRepo.dto";
 
 const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],

@@ -1,5 +1,5 @@
-import type { RepoDto } from "../models/RepoDto";
-import type { RepoBasicDto } from "../models/RepoBasicDto";
+import type { RepoDto } from "../dtos/Repo.dto";
+import type { RepoBasicDto } from "../dtos/RepoBasic.dto";
 import { XMLParser } from "fast-xml-parser";
 import { Language } from "@google/genai";
 import { logger } from "../utils/logger";

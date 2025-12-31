@@ -1,12 +1,19 @@
 import type { Repo } from "@prisma/client";
-import type { RepoDto } from "../models/RepoDto";
-import type { RepoBasicDto } from "../models/RepoBasicDto";
+import type { RepoDto } from "../dtos/Repo.dto";
+import type { RepoBasicDto } from "../dtos/RepoBasic.dto";
 import { findRepoById, createRepo, findRepoByOwnerAndName } from "../repositories/repo.repo";
 import { fetchRepoMeta } from "../utils/github-api";
 import { parseRepoMeta } from "../parser/repo-parser";
 import { logger } from "../utils/logger";
 import { repoFetchingLock } from "../utils/lock";
 
+/**
+ * Prepare repository with meta information from GitHub API
+ * Retrieves from database
+ * If not in database, fetches from GitHub API and stores it
+ * @param repoBasicDto 
+ * @returns Repo or null
+ */
 export async function prepareRepo(repoBasicDto: RepoBasicDto): Promise<Repo | null> {
     const servLogger = logger.child({repo: `${repoBasicDto.owner}/${repoBasicDto.name}`});
     try {
@@ -27,7 +34,7 @@ export async function prepareRepo(repoBasicDto: RepoBasicDto): Promise<Repo | nu
             }
             await new Promise(resolve => setTimeout(resolve, delayMs)); // wait for 1 second before retrying
         }
-        servLogger.warn(`Failed to prepare repo after multiple attempts`);
+        servLogger.warn(`Failed to prepare repo after ${maxRetries} attempts`);
         return null;
     } catch (error) {
         servLogger.error({error}, `Error preparing repo ${repoBasicDto.owner}/${repoBasicDto.name}`);
@@ -35,6 +42,11 @@ export async function prepareRepo(repoBasicDto: RepoBasicDto): Promise<Repo | nu
     }
 }
 
+/**
+ * Fetch repo meta with locking to prevent concurrent repeated GitHub API calls
+ * @param repoBasicDto 
+ * @returns RepoDto or null
+ */
 async function fetchRepoWithLock(repoBasicDto: RepoBasicDto): Promise<RepoDto | null> {
     const lockKey = `${repoBasicDto.owner}/${repoBasicDto.name}`;
     let locked = false;
@@ -55,7 +67,11 @@ async function fetchRepoWithLock(repoBasicDto: RepoBasicDto): Promise<RepoDto | 
     }
 }
 
-
+/**
+ * Save repo to database if not exists
+ * @param repo 
+ * @returns Repo
+ */
 export async function saveRepo(repo: Omit<Repo, 'createdAt' | 'updatedAt'>): Promise<Repo> {
     try {
         const existingRepo = await findRepoById(repo.id!);

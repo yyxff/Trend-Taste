@@ -1,6 +1,6 @@
 import { generate } from "./gemini";
-import { summary, type RepoDto } from "../models/RepoDto";
-import type { FineRepoDto } from "../models/FineRepoDto";
+import { summary, type RepoDto } from "../dtos/Repo.dto";
+import type { FineRepoDto } from "../dtos/FineRepo.dto";
 import { LanguageType } from "@prisma/client";
 import { languagePromptMap } from "../constants/language";
 
@@ -19,4 +19,17 @@ export async function generateRecommendationForRepo(repo: RepoDto, language: Lan
         ...repo,
         recommendation: recommendation
     };
+}
+
+/**
+ * Generate summary for a repo group
+ * @param repoList 
+ * @param language 
+ * @returns summary string
+ */
+export async function generateSummaryForRepoGroup(repoList: FineRepoDto[], language: LanguageType): Promise<string> {
+    const repoRecommendations = repoList.map(repo => repo.recommendation).join('\n');
+    const prompt = `${languagePromptMap[language]}. Please give me a brief summary (within 100 words for the whole summary! You only need to include the most valuable information) for today's repositories: ${repoRecommendations}`;
+    const summary = await generate(prompt);
+    return summary;
 }
