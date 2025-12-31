@@ -35,7 +35,7 @@ export async function prepareRecommendationForRepo(repoDto: RepoDto, language: L
         servLogger.warn(`Recommendation not found after ${maxRetries} attempts`);
         return null;
     } catch (error) {
-        servLogger.error({error}, "Error preparing recommendation");
+        servLogger.error({err: error}, "Error preparing recommendation");
         throw new Error(`Error preparing recommendation for repo ${repoDto.id} and language ${language}: ${error}`);
     }
 }
@@ -59,7 +59,7 @@ export async function generateRecommendationWithLock(repoDto: RepoDto, language:
         }
         return null;
     } catch (error) {
-        servLogger.error({error}, "Error generating recommendation with lock");
+        servLogger.error({err: error}, "Error generating recommendation with lock");
         throw new Error(`Error generating recommendation with lock for repo ${repoDto.id} and language ${language}: ${error}`);
     } finally {
         if (locked) {
@@ -79,7 +79,7 @@ export async function getRecommendationForRepo(repoId: string, language: Languag
         const recommendation = await findRecommendationByRepoAndLanguage(repoId, language);
         return recommendation ? recommendation.content : null;
     } catch (error) {
-        logger.error({error, repoId, language}, "Error fetching recommendation for repo");
+        logger.error({err: error, repoId, language}, "Error fetching recommendation for repo");
         throw error;
     }
 }
@@ -95,7 +95,7 @@ export async function createRecommendationForRepo(repoId: string, language: Lang
         await createRecommendation(repoId, language, recommendation);
         logger.info({repoId, language}, "Created recommendation for repo");
     } catch (error) {
-        logger.error({error, repoId, language}, "Error creating recommendation for repo");
+        logger.error({err: error, repoId, language}, "Error creating recommendation for repo");
         throw error;
     }
 }

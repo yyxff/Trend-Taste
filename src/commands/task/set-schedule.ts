@@ -32,14 +32,14 @@ export const data = new SlashCommandBuilder()
     );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-    const cmdlogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
-    cmdlogger.info("Command invoked");
+    const cmdLogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
+    cmdLogger.info("Command invoked");
     try {
         const hour = interaction.options.getInteger("hour", true);
         const minute = interaction.options.getInteger("minute", true);
         const timezone = interaction.options.getString("timezone", true);
         if (!IANAZone.isValidZone(timezone)) {
-            cmdlogger.warn({ timezone }, "Invalid timezone provided");
+            cmdLogger.warn({ timezone }, "Invalid timezone provided");
             return interaction.reply(`Invalid timezone: ${timezone}`);
         }
         const now = DateTime.now().setZone(timezone);
@@ -51,10 +51,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         +`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} `
         +`for ${timezone} UTC${now.toFormat("ZZ")}, `
         +`(Next run: ${taskTime.toISO()})`;
-        cmdlogger.info({ hour, minute, timezone }, "Command executed successfully");
+        cmdLogger.info({ hour, minute, timezone }, "Command executed successfully");
         return interaction.reply(response);
     } catch (error) {
-        cmdlogger.error({error}, "Command execution failed");
+        cmdLogger.error({err: error}, "Command execution failed");
         return interaction.reply(`Failed to set schedule. Please try again or check the logs.`);
     }
 }

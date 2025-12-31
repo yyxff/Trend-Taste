@@ -7,15 +7,15 @@ export const data = new SlashCommandBuilder()
     .setDescription("Enables the scheduled task for this channel");
     
 export async function execute(interaction: CommandInteraction) {
-    const cmdlogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
-    cmdlogger.info("Command invoked");
+    const cmdLogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
+    cmdLogger.info("Command invoked");
     try {
         const channelId = interaction.channelId;
         await enableTask(channelId);
-        cmdlogger.info("Command executed successfully");
+        cmdLogger.info("Command executed successfully");
         return interaction.reply(`Enabled the scheduled task for this channel.`);
     } catch (error) {
-        cmdlogger.error({error}, "Command execution failed");
+        cmdLogger.error({err: error}, "Command execution failed");
         return interaction.reply(`Failed to enable the scheduled task for this channel.`);
     }
 }

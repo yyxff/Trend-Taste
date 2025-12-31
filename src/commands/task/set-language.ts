@@ -20,16 +20,16 @@ export const data = new SlashCommandBuilder()
 
 // Get the preferred language and write it to the database
 export async function execute(interaction: ChatInputCommandInteraction) {
-    const cmdlogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
-    cmdlogger.info("Command invoked");
+    const cmdLogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
+    cmdLogger.info("Command invoked");
     try {
         const language = interaction.options.getString("language", true);
         const channelId = interaction.channelId;
         await setTaskLanguage(channelId, language as LanguageType);
-        cmdlogger.info("Command executed successfully");
+        cmdLogger.info("Command executed successfully");
         await interaction.reply(`Language has been set to ${language}`);
     } catch (error) {
-        cmdlogger.error({error}, "Command execution failed");
+        cmdLogger.error({err: error}, "Command execution failed");
         await interaction.reply({ content: `Failed to set language. Please try again later.`, flags: MessageFlags.Ephemeral });
     }
 }

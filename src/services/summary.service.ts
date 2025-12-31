@@ -38,7 +38,7 @@ export async function prepareSummaryForRepoGroup(repoList: FineRepoDto[], langua
         servLogger.warn(`Summary not found after ${maxRetries} attempts`);
         return null;
     } catch (error) {
-        servLogger.error({error}, "Error preparing summary");
+        servLogger.error({err: error}, "Error preparing summary");
         throw new Error(`Error preparing summary for repo group hash ${repoGroupHash} and language ${language}: ${error}`);
     }
 }    
@@ -62,7 +62,7 @@ async function generateSummaryWithLock(repoList: FineRepoDto[], language: Langua
         }
         return null;
     } catch (error) {
-        servLogger.error({error}, "Error generating summary with lock");
+        servLogger.error({err: error}, "Error generating summary with lock");
         throw new Error(`Error generating summary for lock key ${lockKey}: ${error}`);
     } finally {
         if (locked) {

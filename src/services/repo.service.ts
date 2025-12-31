@@ -1,7 +1,7 @@
 import type { Repo } from "@prisma/client";
 import type { RepoDto } from "../dtos/Repo.dto";
 import type { RepoBasicDto } from "../dtos/RepoBasic.dto";
-import { findRepoById, createRepo, findRepoByOwnerAndName } from "../repositories/repo.repo";
+import { findRepoById, createRepo, findRepoByOwnerAndName, updateRepo } from "../repositories/repo.repo";
 import { fetchRepoMeta } from "../utils/github-api";
 import { parseRepoMeta } from "../parser/repo-parser";
 import { logger } from "../utils/logger";
@@ -21,11 +21,14 @@ export async function prepareRepo(repoBasicDto: RepoBasicDto): Promise<Repo | nu
         const delayMs = 1000;
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             const repo = await findRepoByOwnerAndName(repoBasicDto.owner, repoBasicDto.name);
-            if (repo) {
+            if (repo && repo.updatedAt > new Date(Date.now() - 24 * 60 * 60 * 1000)) { // if repo is updated within last 24 hours
                 servLogger.info(`Repo retrieved from database successfully`);
                 return repo;
+            } else if (repo) { // repo exists but outdated
+                servLogger.info(`Repo found in database but outdated, updating from GitHub API, attempt ${attempt}/${maxRetries}`);
+            } else { // repo not found
+                servLogger.info(`Repo not found in database, fetching from GitHub API, attempt ${attempt}/${maxRetries}`);
             }
-            servLogger.info(`Repo not found in database, fetching from GitHub API, attempt ${attempt}/${maxRetries}`);
             const repoDto = await fetchRepoWithLock(repoBasicDto);
             if (repoDto) {
                 const repo = await saveRepo(repoDto);
@@ -37,7 +40,7 @@ export async function prepareRepo(repoBasicDto: RepoBasicDto): Promise<Repo | nu
         servLogger.warn(`Failed to prepare repo after ${maxRetries} attempts`);
         return null;
     } catch (error) {
-        servLogger.error({error}, `Error preparing repo ${repoBasicDto.owner}/${repoBasicDto.name}`);
+        servLogger.error({err: error}, `Error preparing repo ${repoBasicDto.owner}/${repoBasicDto.name}`);
         throw new Error(`Error fetching repo ${repoBasicDto.owner}/${repoBasicDto.name}: ${error}`);
     }
 }
@@ -72,12 +75,24 @@ async function fetchRepoWithLock(repoBasicDto: RepoBasicDto): Promise<RepoDto | 
  * @param repo 
  * @returns Repo
  */
-export async function saveRepo(repo: Omit<Repo, 'createdAt' | 'updatedAt'>): Promise<Repo> {
+export async function saveRepo(repoDto: RepoDto): Promise<Repo> {
+    const repo: Omit<Repo, 'createdAt' | 'updatedAt'> = {
+        id: repoDto.id,
+        owner: repoDto.owner,
+        name: repoDto.name,
+        url: repoDto.url,
+        description: repoDto.description,
+        stars: repoDto.stars,
+        forks: repoDto.forks,
+        watchings: repoDto.watchings,
+        language: repoDto.language,
+        topics: repoDto.topics,
+    }
     try {
         const existingRepo = await findRepoById(repo.id!);
         if (existingRepo) {
-            // todo: use github api to check if they have same repo id
-            return existingRepo;
+            const updatedRepo = await updateRepo(repo.owner, repo.name, repo);
+            return updatedRepo;
         }
         const newRepo = await createRepo(repo);
         return newRepo;

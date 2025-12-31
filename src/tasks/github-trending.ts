@@ -32,7 +32,7 @@ export async function runGithubTrendingTask(client: Client, channelId: string, l
         await pushSummaryToChannel(client, channelId, embedSummary);
         await pushTrendingToChannel(client, channelId, embedRepo);
     } catch (error) {
-        logger.error({error}, "Error running github trending task");
+        logger.error({err: error}, "Error running github trending task");
     }
 }
 
@@ -108,7 +108,7 @@ export async function pushTrendingToChannel(client: Client, channelId: string, r
         }));
         logger.info({channelId}, "Pushed trending repositories to channel successfully");
     } catch (error) {
-        logger.error({error, channelId}, "Error pushing trending repositories to channel");
+        logger.error({err: error, channelId}, "Error pushing trending repositories to channel");
     }
 }
 
@@ -126,7 +126,7 @@ async function pushSummaryToChannel(client: Client, channelId: string, summary: 
         await channel.send({ embeds: [summary] });
         logger.info({channelId}, "Pushed summary to channel successfully");
     } catch (error) {
-        logger.error({error, channelId}, "Error pushing summary to channel");
+        logger.error({err: error, channelId}, "Error pushing summary to channel");
     }
 }
 

@@ -25,7 +25,7 @@ export function addTask(taskId: number, time: string, timezone: string) {
                     removeTask(taskId);
                 }
             } catch (error) {
-                schedulerLogger.error({error}, "Error running task");
+                schedulerLogger.error({err: error}, "Error running task");
             }
         },
         null,

@@ -23,16 +23,19 @@ export async function findRepoByOwnerAndName(owner: string, name: string): Promi
 export async function createRepo(repo: Omit<Repo, 'createdAt' | 'updatedAt'>) {
     return prisma.repo.create({
         data: {
-            id: repo.id,
-            owner: repo.owner,
-            name: repo.name,
-            url: repo.url,
-            description: repo.description,
-            stars: repo.stars,
-            forks: repo.forks,
-            watchings: repo.watchings,
-            language: repo.language,
-            topics: repo.topics,
+            ...repo
         }
+    });
+}
+
+export async function updateRepo(owner: string, name: string, updates: Partial<Omit<Repo, 'createdAt' | 'updatedAt'>>) {
+    return prisma.repo.update({
+        where: {
+            owner_name: {
+                owner: owner,
+                name: name
+            }
+        },
+        data: updates
     });
 }

@@ -20,15 +20,15 @@ export const data = new SlashCommandBuilder()
 
 // Get the task type from user and write it to the database
 export async function execute(interaction: ChatInputCommandInteraction) {
-    const cmdlogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
-    cmdlogger.info("Command invoked");
+    const cmdLogger = logger.child({command: `/${interaction.commandName}`, channelId: interaction.channelId})
+    cmdLogger.info("Command invoked");
     try {
         const taskType = interaction.options.getString("task-type", true);
         await setTaskType(interaction.channelId, taskType as TaskType);
-        cmdlogger.info("Task type set successfully");
+        cmdLogger.info("Task type set successfully");
         return interaction.reply({ content: `Task type set to ${taskType}`, flags: MessageFlags.Ephemeral });
     } catch (error) {
-        cmdlogger.error({error}, "Error setting task type");
+        cmdLogger.error({err: error}, "Error setting task type");
         const taskType = interaction.options.getString("task-type", true);
         return interaction.reply({ content: `Failed to set task type ${taskType}. Please try again or check the logs.`, flags: MessageFlags.Ephemeral });
     }
