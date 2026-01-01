@@ -1,5 +1,5 @@
-import type { LanguageType } from "@prisma/client";
-import { prisma } from "../db";
+import type { LanguageType } from "@generated/client";
+import { prisma } from "@db";
 
 export async function findRecommendationByRepoAndLanguage(repoId: string, language: LanguageType) {
     return prisma.recommendation.findUnique({

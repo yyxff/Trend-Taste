@@ -1,6 +1,27 @@
 version: '3.8'
 
 services:
+
+  app:
+    build: .
+    environment:
+      DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID}
+      DISCORD_PUBLIC_KEY: ${DISCORD_PUBLIC_KEY}
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      GITHUB_API_TOKEN: ${GITHUB_API_TOKEN}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-trendtaste}
+      NODE_ENV: ${NODE_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - db
+      - loki
+    networks:
+      - trend-data
+
   db:
     image: postgres:16
     restart: always
@@ -12,21 +33,29 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - trend-data
 
   loki:
     image: grafana/loki:2.9.0
-    ports:
-      - "3100:3100"
+    networks:
+      - trend-data
 
   grafana:
     image: grafana/grafana:10.1.1
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
     depends_on:
       - loki
+    networks:
+      - trend-data
 
 volumes:
   postgres_data:
+
+networks:
+  trend-data:
+    driver: bridge

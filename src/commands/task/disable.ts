@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, CommandInteraction } from "discord.js"
-import { disableTask } from "../../services/task.service";
-import { logger } from "../../utils/logger";
+import { disableTask } from "@services/task.service";
+import { logger } from "@utils/logger";
 
 export const data = new SlashCommandBuilder()
     .setName("disable")

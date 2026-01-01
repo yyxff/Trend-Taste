@@ -1,4 +1,4 @@
-import type { Repo } from "@prisma/client";
+import type { Repo } from "@generated/client";
 import type { RepoDto } from "../dtos/Repo.dto";
 import type { RepoBasicDto } from "../dtos/RepoBasic.dto";
 import { findRepoById, createRepo, findRepoByOwnerAndName, updateRepo } from "../repositories/repo.repo";

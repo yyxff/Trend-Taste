@@ -1,7 +1,7 @@
-import { getTaskById } from "../services/task.service";
+import { getTaskById } from "@services/task.service";
 import { runGithubTrendingTask } from "../tasks/github-trending";
 import { client } from "../bot";
-import { logger } from "../utils/logger";
+import { logger } from "@utils/logger";
 
 /**
  * Run the a task for the given taskId

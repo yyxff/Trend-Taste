@@ -17,7 +17,7 @@ const pinoConfig = process.env.NODE_ENV === "development"
       transport: {
         targets: [
           // { target: 'pino/file', options: { destination: path.join(logDir, 'app.log') } },
-          { target: 'pino-loki', options: { host: 'http://localhost:3100', labels: { job: 'trend-taste' } } }, // Loki
+          { target: 'pino-loki', options: { host: 'http://loki:3100', labels: { job: 'trend-taste' } } }, // Loki
         ]
       }
     };

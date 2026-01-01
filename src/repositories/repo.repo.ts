@@ -1,5 +1,5 @@
-import { prisma } from '../db';
-import type { Repo } from '@prisma/client';
+import { prisma } from '@db';
+import type { Repo } from '@generated/client';
 
 export async function findRepoById(repoId: string): Promise<Repo | null> {
     return prisma.repo.findUnique({

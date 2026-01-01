@@ -36,5 +36,15 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@generated/*": ["prisma/generated/prisma/*"],
+      "@commands/*": ["src/commands/*"],
+      "@services/*": ["src/services/*"],
+      "@repo/*": ["src/repositories/*"],
+      "@db": ["src/db"],
+      "@utils/*": ["src/utils/*"]
+    }
   }
 }

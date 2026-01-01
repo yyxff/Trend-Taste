@@ -1,5 +1,5 @@
-import type { Task, TaskType, LanguageType } from "@prisma/client";
-import { prisma } from "../db";
+import type { Task, TaskType, LanguageType } from "@generated/client";
+import { prisma } from "@db";
 import { DateTime } from "luxon";
 import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone, getTasksByEnabledStatus } from "../repositories/task.repo";
 import { addTask, removeTask, rescheduleTask } from "../scheduled/scheduler";

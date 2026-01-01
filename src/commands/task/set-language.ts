@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { LanguageType } from "@prisma/client";
-import { setTaskLanguage } from "../../services/task.service";
-import { logger } from "../../utils/logger";
+import { LanguageType } from "@generated/client";
+import { setTaskLanguage } from "@services/task.service";
+import { logger } from "@utils/logger";
 
 // Set your preferred language
 export const data = new SlashCommandBuilder()

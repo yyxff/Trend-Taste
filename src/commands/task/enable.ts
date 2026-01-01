@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, CommandInteraction } from "discord.js"
-import { enableTask } from "../../services/task.service";
-import { logger } from "../../utils/logger";
+import { enableTask } from "@services/task.service";
+import { logger } from "@utils/logger";
 
 export const data = new SlashCommandBuilder()
     .setName("enable")

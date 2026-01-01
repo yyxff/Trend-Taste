@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { IANAZone, DateTime } from "luxon";
 import { COMMON_TIMEZONES } from "../../constants/timezones";
-import { setTaskSchedule, setTaskTimezone } from "../../services/task.service";
-import { logger } from "../../utils/logger";
+import { setTaskSchedule, setTaskTimezone } from "@services/task.service";
+import { logger } from "@utils/logger";
 
 export const data = new SlashCommandBuilder()
     .setName("set-schedule")

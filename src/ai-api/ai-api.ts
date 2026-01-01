@@ -1,7 +1,7 @@
 import { generate } from "./gemini";
 import { summary, type RepoDto } from "../dtos/Repo.dto";
 import type { FineRepoDto } from "../dtos/FineRepo.dto";
-import { LanguageType } from "@prisma/client";
+import { LanguageType } from "@generated/client";
 import { languagePromptMap } from "../constants/language";
 
 /**

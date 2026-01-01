@@ -1,5 +1,5 @@
-import { prisma } from "../db";
-import type { Task, TaskType, LanguageType } from "@prisma/client";
+import { prisma } from "@db";
+import type { Task, TaskType, LanguageType } from "@generated/client";
 
 export async function getTaskByChannelId(channelId: string): Promise<Task | null> {
     return prisma.task.findUnique({

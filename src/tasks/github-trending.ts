@@ -1,13 +1,13 @@
-import { Client, EmbedBuilder } from "discord.js";
-import { parseRepoListFromRSS } from "../parser/repo-parser";
-import { fetchGithubTrending } from "../utils/github-rss-api";
 import type { RepoDto } from "../dtos/Repo.dto";
 import type { FineRepoDto } from "../dtos/FineRepo.dto";
-import type { LanguageType } from "@prisma/client";
-import { logger } from "../utils/logger";
-import { prepareRepo } from "../services/repo.service";
-import { prepareRecommendationForRepo } from "../services/recommendation.service";
-import { prepareSummaryForRepoGroup } from "../services/summary.service";
+import type { LanguageType } from "@generated/client";
+import { Client, EmbedBuilder } from "discord.js";
+import { parseRepoListFromRSS } from "../parser/repo-parser";
+import { fetchGithubTrending } from "@utils/github-rss-api";
+import { logger } from "@utils/logger";
+import { prepareRepo } from "@services/repo.service";
+import { prepareRecommendationForRepo } from "@services/recommendation.service";
+import { prepareSummaryForRepoGroup } from "@services/summary.service";
 
 
 /**
@@ -33,6 +33,7 @@ export async function runGithubTrendingTask(client: Client, channelId: string, l
         await pushTrendingToChannel(client, channelId, embedRepo);
     } catch (error) {
         logger.error({err: error}, "Error running github trending task");
+        throw error;
     }
 }
 

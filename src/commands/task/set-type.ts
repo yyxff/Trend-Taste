@@ -1,8 +1,8 @@
 import { MessageFlags } from "discord.js";
-import { TaskType } from "@prisma/client";
+import { TaskType } from "@generated/client";
 import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
-import { setTaskType } from "../../services/task.service";
-import { logger } from "../../utils/logger";
+import { setTaskType } from "@services/task.service";
+import { logger } from "@utils/logger";
 
 // Set your task type
 export const data = new SlashCommandBuilder()

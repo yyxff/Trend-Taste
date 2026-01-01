@@ -1,8 +1,7 @@
 import { CommandInteraction, SlashCommandBuilder } from "discord.js";
-import { getTaskByChannelId } from "../../services/task.service";
-import { logger } from "../../utils/logger";
+import { getTaskByChannelId } from "@services/task.service";
+import { logger } from "@utils/logger";
 import { runTask } from "../../scheduled/runner";
-import { TaskType } from "@prisma/client";
 
 export const data = new SlashCommandBuilder()
     .setName("run")

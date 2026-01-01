@@ -1,5 +1,5 @@
-import type { Summary, LanguageType } from '@prisma/client';
-import { prisma } from '../db';
+import type { Summary, LanguageType } from '@generated/client';
+import { prisma } from '@db';
 
 export async function getSummaryByRepoGroupHashAndLanguage(repoGroupHash: string, language: LanguageType): Promise<Summary | null> {
     return prisma.summary.findUnique({

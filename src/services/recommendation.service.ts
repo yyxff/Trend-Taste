@@ -1,4 +1,4 @@
-import type { LanguageType } from "@prisma/client";
+import type { LanguageType } from "@generated/client";
 import type { RepoDto } from "../dtos/Repo.dto";
 import { findRecommendationByRepoAndLanguage, createRecommendation } from "../repositories/recommendation.repo";
 import { logger } from "../utils/logger";
