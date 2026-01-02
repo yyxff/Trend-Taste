@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/bot.ts",
     "build": "esbuild src/bot.ts --bundle --platform=node --format=esm --target=node20 --outdir=dist --packages=external",
-    "start": "node dist/bot.js",
+    "start": "npx prisma migrate deploy && node dist/bot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
