@@ -42,15 +42,24 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             cmdLogger.warn({ timezone }, "Invalid timezone provided");
             return interaction.reply(`Invalid timezone: ${timezone}`);
         }
-        const now = DateTime.now().setZone(timezone);
-        const taskTime = now.set({ hour: hour, minute: minute, second: 0, millisecond: 0 });
+        const timeAsDate = new Date(`1970-01-01T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00Z`);
+        
         await setTaskTimezone(interaction.channelId, timezone);
-        await setTaskSchedule(interaction.channelId, taskTime.toUTC().toJSDate());
-
+        const task = await setTaskSchedule(interaction.channelId, timeAsDate);
+        
+        const scheduledTime = task.schedule!;
+        const scheduledLuxonTime = DateTime.now()
+            .setZone(task.timezone!)
+            .set({
+                hour: scheduledTime.getUTCHours(), 
+                minute: scheduledTime.getUTCMinutes(), 
+                second: 0, 
+                millisecond: 0 
+            });
         const response = `Your task is scheduled to `
-        +`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} `
-        +`for ${timezone} UTC${now.toFormat("ZZ")}, `
-        +`(Next run: ${taskTime.toISO()})`;
+        +`${scheduledTime.getUTCHours().toString().padStart(2, '0')}:${scheduledTime.getUTCMinutes().toString().padStart(2, '0')} `
+        +`for ${task.timezone} UTC${scheduledLuxonTime.toFormat("ZZ")}, `
+        +`(Next run: ${scheduledLuxonTime.toISO()})`;
         cmdLogger.info({ hour, minute, timezone }, "Command executed successfully");
         return interaction.reply(response);
     } catch (error) {

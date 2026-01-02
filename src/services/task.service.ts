@@ -94,8 +94,7 @@ export async function enableTask(channelId: string): Promise<Task> {
         const task = await upsertTaskEnabledStatus(channelId, true);
         logger.info({taskId: task.id}, "enabled task");
         if (task.schedule && task.timezone) {
-            const utcTime = DateTime.fromJSDate(task.schedule, { zone: "utc" });
-            const localTime = utcTime.setZone(task.timezone)
+            const localTime = DateTime.fromJSDate(task.schedule, { zone: "utc" });
             const cronExprLocal = `${localTime.minute} ${localTime.hour} * * *`;
             addTask(task.id, cronExprLocal, task.timezone);
         }

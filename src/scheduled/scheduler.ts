@@ -13,7 +13,7 @@ const EnabledTasks: Map<number, CronJob> = new Map();
  * @param timezone
  */
 export function addTask(taskId: number, time: string, timezone: string) {
-    const schedulerLogger = logger.child({taskId});
+    const schedulerLogger = logger.child({taskId, scheduledTime: time, timezone});
     const job = new CronJob(
         time,
         async () => {
@@ -33,7 +33,7 @@ export function addTask(taskId: number, time: string, timezone: string) {
         timezone
     );
     EnabledTasks.set(taskId, job);
-    schedulerLogger.info("Added task");
+    schedulerLogger.info({nextRun: job.nextDate().toISO()},"Added task");
 }
 
 /**
