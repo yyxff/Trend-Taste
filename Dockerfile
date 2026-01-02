@@ -1,8 +1,23 @@
-# Step 1: build
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS base
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+
+# --- Stage 1: Development Dependencies ---
+FROM base AS development
+# Install all dependencies (including devDependencies, so we have tsx)
+RUN npm install
+COPY tsconfig.json ./
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
+COPY src ./src
+ENV NODE_ENV=development
+# This CMD will be overridden by the command in docker-compose.override.yml
+CMD ["npx", "tsx", "watch", "src/bot.ts"]
+
+# --- Stage 2: Production Build (Builder) ---
+FROM base AS builder
+COPY --from=development /app/node_modules ./node_modules
 COPY tsconfig.json ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
@@ -10,14 +25,16 @@ RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma gene
 COPY src ./src
 RUN npm run build
 
-# Step 2: runtime
-FROM node:20-alpine
+# --- Stage 3: Production Runtime (Production) ---
+FROM node:20-alpine AS production
 WORKDIR /app
+COPY package*.json ./
+# Only install production dependencies to reduce image size
+RUN npm install --only=production
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
 COPY --from=builder /app/dist ./dist
-RUN npm ci --production
 
 ENV NODE_ENV=production
-CMD ["npm", "start"]
+CMD ["node", "dist/bot.js"]

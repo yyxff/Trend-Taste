@@ -1,7 +1,9 @@
 services:
 
   app:
-    build: .
+    build: 
+      context: .
+      target: production
     environment:
       DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID}
       DISCORD_PUBLIC_KEY: ${DISCORD_PUBLIC_KEY}

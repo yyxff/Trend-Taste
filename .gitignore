@@ -9,3 +9,5 @@ todo.md
 logs
 
 prisma/generated/
+
+docker-compose.override.yml
