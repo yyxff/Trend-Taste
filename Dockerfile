@@ -30,7 +30,7 @@ FROM node:20-alpine AS production
 WORKDIR /app
 COPY package*.json ./
 # Only install production dependencies to reduce image size
-RUN npm install --only=production
+RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
