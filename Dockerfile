@@ -37,4 +37,4 @@ COPY --from=builder /app/prisma.config.ts ./
 COPY --from=builder /app/dist ./dist
 
 ENV NODE_ENV=production
-CMD ["node", "dist/bot.js"]
+CMD ["npm", "start"]
