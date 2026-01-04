@@ -11,7 +11,7 @@
   },
   "keywords": [],
   "author": "yyxff salmontwosday@gmail.com",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@google/genai": "^1.34.0",
