@@ -11,16 +11,10 @@
     A smart trend push bot based on Discord.js and AI.
   </p>
 
-  <a href="https://github.com/yyxff/trend-taste/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/yyxff/trend-taste?style=flat-square&color=blue" alt="License">
-  </a>
-  <a href="https://github.com/yyxff/trend-taste/stargazers">
-    <img src="https://img.shields.io/github/stars/yyxff/trend-taste?style=flat-square&color=yellow" alt="Stars">
-  </a>
-  <a href="https://github.com/yyxff/trend-taste/issues">
-    <img src="https://img.shields.io/github/issues/yyxff/trend-taste?style=flat-square&color=red" alt="Issues">
-  </a>
-  <img src="https://img.shields.io/badge/version-1.0.0-green?style=flat-square" alt="Version">
+  [![License](https://img.shields.io/github/license/yyxff/trend-taste?style=flat-square&color=blue)]("https://github.com/yyxff/trend-taste/blob/main/LICENSE")
+  [![Stars](https://img.shields.io/github/stars/yyxff/trend-taste?style=flat-square&color=yellow)]("https://github.com/yyxff/trend-taste/stargazers")
+  [![Issues](https://img.shields.io/github/issues/yyxff/trend-taste?style=flat-square&color=red)]("https://github.com/yyxff/trend-taste/issues")
+  [![Version](https://img.shields.io/badge/version-1.0.0-green?style=flat-square)]("https://github.com/yyxff/trend-taste/releases")
 
   <br> <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/Discord.js-5865F2?style=flat-square&logo=discord&logoColor=white" alt="Discord.js">
