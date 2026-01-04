@@ -64,7 +64,14 @@ The bot sends a rich embed scheduled at the time you set, containing:
 [![Invite Bot](https://img.shields.io/badge/Discord-Invite%20Bot-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1451654362265944116&permissions=19456&integration_type=0&scope=bot+applications.commands)
 
 ### 2. Configuration & Usage
-Once the bot is in your server, you can use the following Slash Commands to set it up:
+
+#### Before you start, you are recommended to create a new channel for the task
+why?
+- Only one task for one Channel.
+- Task is applied to channels instead of users.
+- Different channels mean different subscribers.
+
+#### Once the bot is in your server, you can use the following Slash Commands to set it up:
 
 #### Step 1: Necessary Setup
 - **`/set-language [lang]`**  
@@ -98,16 +105,17 @@ If you want to host your own instance of Trend-Taste:
 - A **Discord Bot Token** (from above)
 - A **Discord Application ID** (from above)
 - A **Discord Public Key** (from above)
-- A **GitHub Personal Access Token** (for higher API rate limits)
 - A **Google Gemini API Key** (for AI features)
-- A **Github API TOKEN** (for fetching trending repositories)
+- A **Github API TOKEN** (for higher API rate limits)
 
 ### Installation
 
-1. **Clone the repository**
+1. **Fetch the config file**
    ```bash
-   git clone https://github.com/yyxff/trend-taste.git
+   mkdir trend-taste
    cd trend-taste
+
+   curl -o docker-compose.yml https://raw.githubusercontent.com/yyxff/trend-taste/main/docker-compose.prod.yml
    ```
 
 2. **Configure Environment**
@@ -157,6 +165,7 @@ For developers who want to contribute or customize the bot.
 
    Initialize the database schema:
    ```bash
+   docker compose up -d db
    npx prisma migrate dev
    ```
 
