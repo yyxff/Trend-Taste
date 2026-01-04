@@ -1,5 +1,5 @@
 import { addTask } from "../scheduled/scheduler";
-import { getAllEnabledTasks } from "../services/task.service";
+import { getTasksToInit } from "../services/task.service";
 import { Client } from "discord.js";
 import { deployCommands } from "../deploy-commands";
 import { logger } from "../utils/logger";
@@ -21,7 +21,7 @@ export async function initBot(client: Client) {
  * Initialize all enabled tasks
  */
 async function initTasks() {
-    const enabledTasks = await getAllEnabledTasks();
+    const enabledTasks = await getTasksToInit();
     enabledTasks.forEach(task => {
         logger.info({taskId: task.id, schedule: task.schedule, channelId: task.channelId}, "Initializing enabled task");
         addTask(task.id, `${task.schedule!.getMinutes()} ${task.schedule!.getHours()} * * *`, task.timezone!);

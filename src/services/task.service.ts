@@ -1,7 +1,7 @@
 import type { Task, TaskType, LanguageType } from "@generated/client";
 import { prisma } from "@db";
 import { DateTime } from "luxon";
-import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone, getTasksByEnabledStatus } from "../repositories/task.repo";
+import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone, getTasksByEnabledStatus, getTasksToInitialize } from "../repositories/task.repo";
 import { addTask, removeTask, rescheduleTask } from "../scheduled/scheduler";
 import { logger } from "../utils/logger";
 
@@ -38,12 +38,25 @@ export async function getTaskByChannelId(channelId: string): Promise<Task | null
 }
 
 /**
- * 
+ * Get all enabled tasks
  * @returns 
  */
 export async function getAllEnabledTasks(): Promise<Task[]> {
     try {
         const tasks = await getTasksByEnabledStatus(true);
+        return tasks;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Get tasks with valid set eat/to initialize
+ * @returns 
+ */
+export async function getTasksToInit(): Promise<Task[]> {
+    try {
+        const tasks = await getTasksToInitialize();
         return tasks;
     } catch (error) {
         throw error;

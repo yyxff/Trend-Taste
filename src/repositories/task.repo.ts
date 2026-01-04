@@ -15,7 +15,25 @@ export async function getTasksByEnabledStatus(enabledStatus: boolean): Promise<T
             enabled: enabledStatus
         }
     });
-}   
+}
+
+export async function getTasksToInitialize(): Promise<Task[]> {
+    const tasks = await prisma.task.findMany({
+        where: {
+            enabled: true,
+            schedule: {
+                not: null,
+            },
+            timezone: {
+                not: null,
+            },
+            taskType: {
+                not: null,
+            },
+        },
+    });
+    return tasks;
+}
 
 export async function upsertTaskEnabledStatus(channelId: string, enabled: boolean): Promise<Task> {
     return _upsertTask(channelId, { enabled });
