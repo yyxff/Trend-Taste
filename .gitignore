@@ -11,3 +11,5 @@ logs
 prisma/generated/
 
 docker-compose.override.yml
+
+.vscode

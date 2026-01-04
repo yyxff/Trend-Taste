@@ -23,6 +23,7 @@ export async function initBot(client: Client) {
 async function initTasks() {
     const enabledTasks = await getAllEnabledTasks();
     enabledTasks.forEach(task => {
+        logger.info({taskId: task.id, schedule: task.schedule, channelId: task.channelId}, "Initializing enabled task");
         addTask(task.id, `${task.schedule!.getMinutes()} ${task.schedule!.getHours()} * * *`, task.timezone!);
     });
 }
