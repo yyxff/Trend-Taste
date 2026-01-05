@@ -48,7 +48,7 @@ export function removeTask(taskId: number) {
         EnabledTasks.delete(taskId);
         schedulerLogger.info("Removed task");
     } else {
-        schedulerLogger.info("No enabled task found");
+        schedulerLogger.info("Task not existing in scheduler");
     }
 }
 
