@@ -1,0 +1,21 @@
+enum TaskType {
+  GITHUB_TRENDING
+}
+
+enum LanguageType {
+  EN
+  ZH
+}
+
+model Task {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  channelId String   @unique
+  taskType  TaskType?
+  schedule  DateTime? @db.Time
+  timezone  String?
+  language  LanguageType @default(EN)
+  enabled    Boolean  @default(false)
+}

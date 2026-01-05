@@ -1,14 +1,17 @@
 import { Client } from "discord.js";
 import { deployCommands } from "./deploy-commands";
 import { commands } from "./commands/index";
-import { config } from "./config";
+import { discordConfig } from "./config";
+import { initBot } from "./bootstrap/init-bot";
+import { logger } from "./utils/logger";
 
-const client = new Client({
+export const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages"],
 });
 
-client.once("clientReady", () => {
-    console.log("Discord bot is ready! 🤖");
+client.once("clientReady", async () => {
+    await initBot(client);    
+    logger.info("Discord bot is ready! 🤖");
 });
 
 client.on("guildCreate", async (guild) => {
@@ -16,13 +19,17 @@ client.on("guildCreate", async (guild) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isCommand()) {
+    logger.debug({interactionId: interaction.id}, "Interaction received");
+    if (!interaction.isCommand() || !interaction.isChatInputCommand()) {
+        logger.error({interactionType: interaction.type}, "Unsupported interaction type.");
         return;
     }
     const { commandName } = interaction;
     if (commands[commandName as keyof typeof commands]) {
         commands[commandName as keyof typeof commands].execute(interaction);
+    } else {
+        logger.error({commandName}, "No command found");
     }
 });
 
-client.login(config.DISCORD_TOKEN);
+client.login(discordConfig.DISCORD_TOKEN);

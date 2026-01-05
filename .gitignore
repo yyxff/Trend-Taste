@@ -1,4 +1,15 @@
 .env
 node_modules
+dist
 
 .DS_Store
+
+todo.md
+
+logs
+
+prisma/generated/
+
+docker-compose.override.yml
+
+.vscode
