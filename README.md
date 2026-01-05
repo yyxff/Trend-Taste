@@ -195,19 +195,20 @@ For developers who want to contribute or customize the bot.
 
    Prepare a `docker-compose.override.yml` file under root directory:
    ```yaml
-   services:
+  services:
     app:
-        build:
+      build:
+        context: .
         target: development
-
-        volumes:
+      
+      volumes:
         - .:/app
         - /app/node_modules
 
-        # Use `tsx watch` to auto-restart on file changes.
-        command: npx tsx watch src/bot.ts
-
-        environment:
+      # Use `tsx watch` to auto-restart on file changes.
+      command: npx tsx watch src/bot.ts
+      
+      environment:
         NODE_ENV: development
 
     # Uncomment the following lines if you want to connect to db from your machine
