@@ -2,7 +2,7 @@ import type { Task, TaskType, LanguageType } from "@generated/client";
 import { prisma } from "@db";
 import { DateTime } from "luxon";
 import { upsertTaskEnabledStatus, upsertTaskLanguage, upsertTaskSchedule, upsertTaskType, upsertTaskTimezone, getTasksByEnabledStatus, getTasksToInitialize } from "../repositories/task.repo";
-import { addTask, removeTask, rescheduleTask } from "../scheduled/scheduler";
+import { removeTask, rescheduleTask } from "../scheduled/scheduler";
 import { logger } from "../utils/logger";
 
 /**
@@ -109,7 +109,7 @@ export async function enableTask(channelId: string): Promise<Task> {
         if (task.schedule && task.timezone) {
             const localTime = DateTime.fromJSDate(task.schedule, { zone: "utc" });
             const cronExprLocal = `${localTime.minute} ${localTime.hour} * * *`;
-            addTask(task.id, cronExprLocal, task.timezone);
+            rescheduleTask(task.id, cronExprLocal, task.timezone);
         }
         return task;
     } catch (error) {
@@ -127,9 +127,6 @@ export async function disableTask(channelId: string): Promise<Task> {
         const task = await upsertTaskEnabledStatus(channelId, false);
         logger.info({taskId: task.id}, "disabled task");
         if (task.schedule && task.timezone) {
-            const utcTime = DateTime.fromJSDate(task.schedule, { zone: "utc" });
-            const localTime = utcTime.setZone(task.timezone)
-            const cronExprLocal = `${localTime.minute} ${localTime.hour} * * *`;
             removeTask(task.id);
         }
         return task;
