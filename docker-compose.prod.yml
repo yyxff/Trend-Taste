@@ -1,8 +1,7 @@
 services:
 
-  trend-taste:
+  app:
     image: ghcr.io/yyxff/trend-taste:latest
-    container_name: trend-taste-release-test
     restart: unless-stopped
     environment:
       DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID}
