@@ -194,7 +194,7 @@ For developers who want to contribute or customize the bot.
 3. **Run in Dev Mode**
 
    Prepare a `docker-compose.override.yml` file under root directory:
-   ```yaml
+  ```yaml
   services:
     app:
       build:
