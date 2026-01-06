@@ -194,29 +194,28 @@ For developers who want to contribute or customize the bot.
 3. **Run in Dev Mode**
 
    Prepare a `docker-compose.override.yml` file under root directory:
-  ```yaml
-  services:
-    app:
-      build:
-        context: .
-        target: development
+   ```yaml
+   services:
+     app:
+       build:
+         context: .
+         target: development
       
-      volumes:
-        - .:/app
-        - /app/node_modules
+       volumes:
+         - .:/app
+         - /app/node_modules
 
-      # Use `tsx watch` to auto-restart on file changes.
-      command: npx tsx watch src/bot.ts
+       # Use `tsx watch` to auto-restart on file changes.
+       command: npx tsx watch src/bot.ts
       
-      environment:
-        NODE_ENV: development
+       environment:
+         NODE_ENV: development
 
-    # Uncomment the following lines if you want to connect to db from your machine
-    # db:
-    #   ports:
-    #     - "5432:5432"
-
-   ```
+     # Uncomment the following lines if you want to connect to db from your machine
+     # db:
+     #   ports:
+     #     - "5432:5432"
+    ```
 
 ### Project Structure
 - `src/bot.ts`: Entry point.
