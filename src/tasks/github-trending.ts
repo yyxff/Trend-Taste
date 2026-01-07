@@ -1,6 +1,7 @@
 import type { RepoDto } from "../dtos/Repo.dto";
 import type { FineRepoDto } from "../dtos/FineRepo.dto";
 import type { LanguageType } from "@generated/client";
+import pLimit from 'p-limit';
 import { Client, EmbedBuilder } from "discord.js";
 import { parseRepoListFromRSS } from "../parser/repo-parser";
 import { fetchGithubTrending } from "@utils/github-rss-api";
@@ -58,13 +59,17 @@ async function prepareSummary(repoList: FineRepoDto[], language: LanguageType): 
  * @returns repo list with recommendations
  */
 async function prepareFineRepoList(repoList: RepoDto[], language: LanguageType): Promise<FineRepoDto[]> {
-    const fineRepoList = await Promise.all(repoList.map(async (repo) => {
-        const recommendation = await prepareRecommendationForRepo(repo, language);
-        return {
-            ...repo,
-            recommendation: recommendation || "No recommendation available"
-        } as FineRepoDto;
-    }));
+    const limit = pLimit(5); // limit concurrency to 5
+    const input = repoList.map(repo => {
+        return limit(async () => {
+            const recommendation = await prepareRecommendationForRepo(repo, language);
+            return {
+                ...repo,
+                recommendation: recommendation || "No recommendation available"
+            } as FineRepoDto;
+        });
+    });
+    const fineRepoList = await Promise.all(input);
     logger.info({count: fineRepoList.length}, `Prepared recommendations for ${fineRepoList.length}/${repoList.length} repositories`);
     return fineRepoList;
 }
@@ -77,16 +82,21 @@ async function prepareFineRepoList(repoList: RepoDto[], language: LanguageType):
 async function prepareTrendingRepos(): Promise<RepoDto[]> {
     const rssData = await fetchGithubTrending();
     const repoList = parseRepoListFromRSS(rssData);
-    const repoDtoList = await Promise.all(repoList.map(async (repoBasicDto) => {
-        const repo = await prepareRepo(repoBasicDto);
-        if (!repo) {
-            return null;
+
+    const limit = pLimit(5); // limit concurrency to 5
+    const input = repoList.map(repoBasicDto => {
+        return limit(async () => {
+            const repo = await prepareRepo(repoBasicDto);
+            if (!repo) {
+                return null;
+            }
+            return {
+                ...repo,
+                readme: repoBasicDto.readme
+            };
         }
-        return {
-            ...repo,
-            readme: repoBasicDto.readme
-        };
-    }))
+    )});
+    const repoDtoList = await Promise.all(input);
     const filteredRepoDtoList = repoDtoList.filter( repo => repo !== null) as RepoDto[];
     logger.info({count: filteredRepoDtoList.length}, `Prepared ${filteredRepoDtoList.length} trending repositories`);
     return filteredRepoDtoList;

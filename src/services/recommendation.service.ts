@@ -16,7 +16,7 @@ export async function prepareRecommendationForRepo(repoDto: RepoDto, language: L
     const servLogger = logger.child({repoId: repoDto.id, language});
     try {
         const maxRetries = 5;
-        const delayMs = 1000;
+        let delayMs = 1000;
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             const recommendation = await findRecommendationByRepoAndLanguage(repoDto.id, language);
             if (recommendation) {
@@ -31,6 +31,7 @@ export async function prepareRecommendationForRepo(repoDto: RepoDto, language: L
                 return generatedRecommendation;
             }
             await new Promise(resolve => setTimeout(resolve, delayMs));
+            delayMs += 1000;
         }
         servLogger.warn(`Recommendation not found after ${maxRetries} attempts`);
         return null;
@@ -60,7 +61,7 @@ export async function generateRecommendationWithLock(repoDto: RepoDto, language:
         return null;
     } catch (error) {
         servLogger.error({err: error}, "Error generating recommendation with lock");
-        throw new Error(`Error generating recommendation with lock for repo ${repoDto.id} and language ${language}: ${error}`);
+        return null;
     } finally {
         if (locked) {
             aiFetchingLock.release(lockKey);

@@ -19,7 +19,7 @@ export async function prepareSummaryForRepoGroup(repoList: FineRepoDto[], langua
     const servLogger = logger.child({repoGroupHash,language});
     try {
         const maxRetries = 5;
-        const delayMs = 1000;
+        let delayMs = 1000;
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             const summary = await getSummaryByRepoGroupHashAndLanguage(repoGroupHash, language);
             if (summary) {
@@ -34,6 +34,7 @@ export async function prepareSummaryForRepoGroup(repoList: FineRepoDto[], langua
                 return generatedSummary;
             }
             await new Promise(resolve => setTimeout(resolve, delayMs));
+            delayMs += 1000;
         }
         servLogger.warn(`Summary not found after ${maxRetries} attempts`);
         return null;
@@ -63,7 +64,7 @@ async function generateSummaryWithLock(repoList: FineRepoDto[], language: Langua
         return null;
     } catch (error) {
         servLogger.error({err: error}, "Error generating summary with lock");
-        throw new Error(`Error generating summary for lock key ${lockKey}: ${error}`);
+        return null
     } finally {
         if (locked) {
             summaryFetchingLock.release(lockKey);
