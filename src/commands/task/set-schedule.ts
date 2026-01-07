@@ -48,7 +48,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         const task = await setTaskSchedule(interaction.channelId, timeAsDate);
         
         const scheduledTime = task.schedule!;
-        const scheduledLuxonTime = DateTime.now()
+        let scheduledLuxonTime = DateTime.now()
             .setZone(task.timezone!)
             .set({
                 hour: scheduledTime.getUTCHours(), 
@@ -56,10 +56,17 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 second: 0, 
                 millisecond: 0 
             });
-        const response = `Your task is scheduled to `
+        
+        // If the scheduled time has already passed today, show tomorrow's time
+        if (scheduledLuxonTime < DateTime.now().setZone(task.timezone!)) {
+            scheduledLuxonTime = scheduledLuxonTime.plus({ days: 1 });
+        }
+        
+        const response = `✅\n`
+        +`Your task is scheduled to `
         +`${scheduledTime.getUTCHours().toString().padStart(2, '0')}:${scheduledTime.getUTCMinutes().toString().padStart(2, '0')} `
-        +`for ${task.timezone} UTC${scheduledLuxonTime.toFormat("ZZ")}, `
-        +`(Next run: ${scheduledLuxonTime.toISO()})`;
+        +`everyday for ${task.timezone} (UTC${scheduledLuxonTime.toFormat("ZZ")})\n`
+        +`Next run: ${scheduledLuxonTime.toISO()}`;
         cmdLogger.info({ hour, minute, timezone }, "Command executed successfully");
         return interaction.reply(response);
     } catch (error) {
