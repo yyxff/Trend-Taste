@@ -18,7 +18,7 @@ export async function prepareRepo(repoBasicDto: RepoBasicDto): Promise<Repo | nu
     const servLogger = logger.child({repo: `${repoBasicDto.owner}/${repoBasicDto.name}`});
     try {
         const maxRetries = 5;
-        const delayMs = 1000;
+        let delayMs = 1000;
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             const repo = await findRepoByOwnerAndName(repoBasicDto.owner, repoBasicDto.name);
             if (repo && repo.updatedAt > new Date(Date.now() - 24 * 60 * 60 * 1000)) { // if repo is updated within last 24 hours
@@ -36,6 +36,7 @@ export async function prepareRepo(repoBasicDto: RepoBasicDto): Promise<Repo | nu
                 return repo;
             }
             await new Promise(resolve => setTimeout(resolve, delayMs)); // wait for 1 second before retrying
+            delayMs += 1000;
         }
         servLogger.warn(`Failed to prepare repo after ${maxRetries} attempts`);
         return null;
@@ -62,7 +63,7 @@ async function fetchRepoWithLock(repoBasicDto: RepoBasicDto): Promise<RepoDto | 
         }
         return null;
     } catch (error) {
-        throw new Error(`Error fetching repo meta ${lockKey}: ${error}`);
+        return null
     } finally {
         if (locked) {
             repoFetchingLock.release(lockKey);
