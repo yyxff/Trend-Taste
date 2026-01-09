@@ -50,8 +50,8 @@ export async function execute(interaction: CommandInteraction) {
             {
                 name: '3. Information & Help',
                 value: [
-                    '`/info`',
-                    '> View all configuration parameters and running status for the current channel.',
+                    '`/check`',
+                    '> View and check all configuration parameters and running status for the current channel.',
                     
                     '`/help`',
                     '> Display this help menu.'
