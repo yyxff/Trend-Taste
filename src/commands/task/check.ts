@@ -23,9 +23,13 @@ export async function execute(interaction: CommandInteraction) {
             +`- ${task.language? "✅ " : "❌ "}[Language]: ${task.language || "Not set"}\n`
             +`- ${task.schedule? "✅ " : "❌ "}[Schedule]: ${task.schedule ? task.schedule.getHours().toString().padStart(2, '0') + ":" + task.schedule.getMinutes().toString().padStart(2, '0') : "Not set"}\n`
             +`- ${task.timezone? "✅ " : "❌ "}[Timezone]: ${task.timezone || "Not set"}\n`
-            +`- ${taskReady? "✅ " : "❌ "}[Ready to enable]: ${taskReady ? "Yes" : "No"}\n`
+            // +`- ${taskReady? "✅ " : "❌ "}[Ready to enable]: ${taskReady ? "Yes" : "No"}\n`
             +`- ${task.enabled? "✅ " : "❌ "}[Enabled]: ${task.enabled ? "Yes" : "No"}\n`
-            +`\n### ${allDoneFlag ? "All set! Your task is fully configured and enabled!" : "Please complete the missing configurations to enable the scheduled task."}`;
+            +`\n### ${allDoneFlag ? "All set! Your task is fully configured and enabled!" : "Please complete the missing configurations to enable the scheduled task."}`
+            +`${task.taskType? "" : "\n- Use \`/set-type\` to set the task type."}`
+            +`${task.language? "" : "\n- Use \`/set-language\` to set the language."}`
+            +`${task.schedule? "" : "\n- Use \`/set-schedule\` to set the schedule."}`
+            +`${task.enabled? "" : "\n- Use \`/enable\` to enable the task once all configurations are set."}`;
         return interaction.reply(taskInfo);
     } catch (error) {
         cmdLogger.error({err: error}, "Error in info command");

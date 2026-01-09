@@ -90,9 +90,10 @@ why?
   Trigger an immediate fetch and push (useful for testing).
 
 #### Other Commands
-- **`/info`**: View current configuration and status.
+- **`/check`**: View and check current configuration and status.
 - **`/help`**: Show the help menu.
 
+**If you see the items all checked after `/check`, you are all set!**
 ---
 
 ## Self-Hosting Guide
