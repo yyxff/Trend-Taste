@@ -3,7 +3,7 @@ import { logger } from "@utils/logger";
 import { getTaskByChannelId } from "@repo/task.repo";
 
 export const data = new SlashCommandBuilder()
-    .setName("info")
+    .setName("check")
     .setDescription("Provides information about current task configuration for this channel");
 
 export async function execute(interaction: CommandInteraction) {
@@ -17,12 +17,15 @@ export async function execute(interaction: CommandInteraction) {
         }
         // cmdLogger.info({task}, "Retrieved task information");
         const taskReady = task.taskType && task.language && task.schedule && task.timezone;
-        const taskInfo = `Task Type: ${task.taskType || "Not set"}\n`
-            +`Language: ${task.language || "Not set"}\n`
-            +`Schedule: ${task.schedule ? task.schedule.getHours().toString().padStart(2, '0') + ":" + task.schedule.getMinutes().toString().padStart(2, '0') : "Not set"}\n`
-            +`Timezone: ${task.timezone || "Not set"}\n`
-            +`Ready to enable: ${taskReady ? "Yes" : "No"}\n`
-            +`Enabeld: ${task.enabled ? "Yes" : "No"}`;
+        const allDoneFlag = taskReady && task.enabled;
+        const taskInfo = `### Task Configuration Check List:\n`
+            +`- ${task.taskType? "✅ " : "❌ "}[Task Type]: ${task.taskType || "Not set"}\n`
+            +`- ${task.language? "✅ " : "❌ "}[Language]: ${task.language || "Not set"}\n`
+            +`- ${task.schedule? "✅ " : "❌ "}[Schedule]: ${task.schedule ? task.schedule.getHours().toString().padStart(2, '0') + ":" + task.schedule.getMinutes().toString().padStart(2, '0') : "Not set"}\n`
+            +`- ${task.timezone? "✅ " : "❌ "}[Timezone]: ${task.timezone || "Not set"}\n`
+            +`- ${taskReady? "✅ " : "❌ "}[Ready to enable]: ${taskReady ? "Yes" : "No"}\n`
+            +`- ${task.enabled? "✅ " : "❌ "}[Enabled]: ${task.enabled ? "Yes" : "No"}\n`
+            +`\n### ${allDoneFlag ? "All set! Your task is fully configured and enabled!" : "Please complete the missing configurations to enable the scheduled task."}`;
         return interaction.reply(taskInfo);
     } catch (error) {
         cmdLogger.error({err: error}, "Error in info command");
