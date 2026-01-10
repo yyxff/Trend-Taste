@@ -1,7 +1,7 @@
 import { prisma } from '@db';
 import type { Repo } from '@generated/client';
 
-export async function findRepoById(repoId: string): Promise<Repo | null> {
+export async function findRepoById(repoId: bigint): Promise<Repo | null> {
     return prisma.repo.findUnique({
         where: {
             id: repoId

@@ -91,6 +91,7 @@ export async function saveRepo(repoDto: RepoDto): Promise<Repo> {
     }
     try {
         const existingRepo = await findRepoById(repo.id!);
+        logger.info({repoId: repo.id, repo: `${repo.owner}/${repo.name}`}, existingRepo ? "Repo exists, updating..." : "Repo does not exist, creating...");
         if (existingRepo) {
             const updatedRepo = await updateRepo(repo.owner, repo.name, repo);
             return updatedRepo;
