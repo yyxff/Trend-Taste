@@ -1,6 +1,7 @@
 import type { RepoDto } from "../dtos/Repo.dto";
 import type { FineRepoDto } from "../dtos/FineRepo.dto";
 import type { LanguageType } from "@generated/client";
+import type { MessageCreateOptions } from "discord.js";
 import pLimit from 'p-limit';
 import { ActionRowBuilder, ButtonStyle, Client, EmbedBuilder, ButtonBuilder } from "discord.js";
 import { parseRepoListFromRSS } from "../parser/repo-parser";
@@ -28,10 +29,10 @@ export async function runGithubTrendingTask(client: Client, channelId: string, l
         const summary = await prepareSummary(fineRepoList, language);
 
         const embedSummary = formatSummaryToEmbed(summary);
-        const embedRepo = fineRepoList.map(formatRepoToEmbed);
+        const messageRepo: MessageCreateOptions[] = fineRepoList.map(fineRepo => ({embeds: [formatRepoToEmbed(fineRepo)], components: [buildButtons(fineRepo)]}));
 
         await pushSummaryToChannel(client, channelId, embedSummary);
-        await pushTrendingToChannel(client, channelId, embedRepo, buildButtons());
+        await pushTrendingToChannel(client, channelId, messageRepo);
     } catch (error) {
         logger.error({err: error}, "Error running github trending task");
         throw error;
@@ -107,15 +108,15 @@ async function prepareTrendingRepos(): Promise<RepoDto[]> {
  * @param client discord client
  * @param repoList repo list
  */
-export async function pushTrendingToChannel(client: Client, channelId: string, repoList: EmbedBuilder[], buttons: ActionRowBuilder<ButtonBuilder>) {
+export async function pushTrendingToChannel(client: Client, channelId: string, messages: MessageCreateOptions[]) {
     try {
 
         const channel = await client.channels.fetch(channelId);
         if (!channel || !channel.isTextBased() || !('send' in channel)) {
             throw new Error("Channel not found or not text based");
         }
-        await Promise.all(repoList.map(async (repo) => {
-            await channel.send({ embeds: [repo], components: [buttons] });
+        await Promise.all(messages.map(async (message) => {
+            await channel.send(message);
         }));
         logger.info({channelId}, "Pushed trending repositories to channel successfully");
     } catch (error) {
@@ -189,15 +190,20 @@ export function formatRepoToEmbed(repo: FineRepoDto): EmbedBuilder {
     return embed;
 }
 
-export function buildButtons(): ActionRowBuilder<ButtonBuilder> {
+/**
+ * Builds the action row with like and dislike buttons with custom IDs
+ * @param fineRepoDto 
+ * @returns 
+ */
+export function buildButtons(fineRepoDto: FineRepoDto): ActionRowBuilder<ButtonBuilder> {
     const feedbackButtons = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId('like')
+                .setCustomId(`like/${fineRepoDto.id}`)
                 .setLabel('Like')
                 .setStyle(ButtonStyle.Success),
             new ButtonBuilder()
-                .setCustomId('dislike')
+                .setCustomId(`dislike/${fineRepoDto.id}`)
                 .setLabel('Dislike')
                 .setStyle(ButtonStyle.Danger),
         );
