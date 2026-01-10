@@ -2,7 +2,7 @@ import type { RepoDto } from "../dtos/Repo.dto";
 import type { FineRepoDto } from "../dtos/FineRepo.dto";
 import type { LanguageType } from "@generated/client";
 import pLimit from 'p-limit';
-import { Client, EmbedBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonStyle, Client, EmbedBuilder, ButtonBuilder } from "discord.js";
 import { parseRepoListFromRSS } from "../parser/repo-parser";
 import { fetchGithubTrending } from "@utils/github-rss-api";
 import { logger } from "@utils/logger";
@@ -31,7 +31,7 @@ export async function runGithubTrendingTask(client: Client, channelId: string, l
         const embedRepo = fineRepoList.map(formatRepoToEmbed);
 
         await pushSummaryToChannel(client, channelId, embedSummary);
-        await pushTrendingToChannel(client, channelId, embedRepo);
+        await pushTrendingToChannel(client, channelId, embedRepo, buildButtons());
     } catch (error) {
         logger.error({err: error}, "Error running github trending task");
         throw error;
@@ -107,7 +107,7 @@ async function prepareTrendingRepos(): Promise<RepoDto[]> {
  * @param client discord client
  * @param repoList repo list
  */
-export async function pushTrendingToChannel(client: Client, channelId: string, repoList: EmbedBuilder[]) {
+export async function pushTrendingToChannel(client: Client, channelId: string, repoList: EmbedBuilder[], buttons: ActionRowBuilder<ButtonBuilder>) {
     try {
 
         const channel = await client.channels.fetch(channelId);
@@ -115,7 +115,7 @@ export async function pushTrendingToChannel(client: Client, channelId: string, r
             throw new Error("Channel not found or not text based");
         }
         await Promise.all(repoList.map(async (repo) => {
-            await channel.send({ embeds: [repo] });
+            await channel.send({ embeds: [repo], components: [buttons] });
         }));
         logger.info({channelId}, "Pushed trending repositories to channel successfully");
     } catch (error) {
@@ -187,4 +187,19 @@ export function formatRepoToEmbed(repo: FineRepoDto): EmbedBuilder {
     embed.setImage(`https://github.html.zone/${repo.owner}/${repo.name}`)
 
     return embed;
+}
+
+export function buildButtons(): ActionRowBuilder<ButtonBuilder> {
+    const feedbackButtons = new ActionRowBuilder<ButtonBuilder>()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('like')
+                .setLabel('Like')
+                .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+                .setCustomId('dislike')
+                .setLabel('Dislike')
+                .setStyle(ButtonStyle.Danger),
+        );
+    return feedbackButtons;
 }
