@@ -200,12 +200,12 @@ export function buildButtons(fineRepoDto: FineRepoDto): ActionRowBuilder<ButtonB
         .addComponents(
             new ButtonBuilder()
                 .setCustomId(`like/${fineRepoDto.id}`)
-                .setLabel('Like')
-                .setStyle(ButtonStyle.Success),
+                .setEmoji('👍')
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId(`dislike/${fineRepoDto.id}`)
-                .setLabel('Dislike')
-                .setStyle(ButtonStyle.Danger),
+                .setEmoji('👎')
+                .setStyle(ButtonStyle.Secondary),
         );
     return feedbackButtons;
 }
